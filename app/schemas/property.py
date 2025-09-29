@@ -1,33 +1,80 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field, validator
+from typing import Optional, List
 from datetime import datetime
 from decimal import Decimal
 
+
 class PropertyBase(BaseModel):
-    address: str
-    property_type: str
-    area: Optional[Decimal] = None
-    rooms: Optional[int] = None
-    bathrooms: Optional[int] = None
+    name: str = Field(..., min_length=1, max_length=255)
+    address: str = Field(..., min_length=1)
+    neighborhood: str = Field(..., min_length=1, max_length=100)
+    city: str = Field(..., min_length=1, max_length=100)
+    state: str = Field(..., min_length=1, max_length=50)
+    zip_code: str = Field(..., min_length=1, max_length=20)
+    type: str = Field(..., pattern="^(apartment|house|commercial|studio)$")
+    area: Decimal = Field(..., gt=0)
+    bedrooms: int = Field(..., ge=0)
+    bathrooms: int = Field(..., ge=0)
+    parking_spaces: int = Field(0, ge=0)
+    rent: Decimal = Field(..., gt=0)
+    status: str = Field("vacant", pattern="^(vacant|occupied|maintenance|inactive)$")
     description: Optional[str] = None
-    monthly_rent: Decimal
-    status: Optional[str] = "disponivel"
+    images: Optional[List[str]] = []
+    is_residential: bool = True
+    tenant: Optional[str] = None
+
 
 class PropertyCreate(PropertyBase):
     pass
 
+
 class PropertyUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
     address: Optional[str] = None
-    property_type: Optional[str] = None
-    area: Optional[Decimal] = None
-    rooms: Optional[int] = None
-    bathrooms: Optional[int] = None
+    neighborhood: Optional[str] = Field(None, max_length=100)
+    city: Optional[str] = Field(None, max_length=100)
+    state: Optional[str] = Field(None, max_length=50)
+    zip_code: Optional[str] = Field(None, max_length=20)
+    type: Optional[str] = Field(None, pattern="^(apartment|house|commercial|studio)$")
+    area: Optional[Decimal] = Field(None, gt=0)
+    bedrooms: Optional[int] = Field(None, ge=0)
+    bathrooms: Optional[int] = Field(None, ge=0)
+    parking_spaces: Optional[int] = Field(None, ge=0)
+    rent: Optional[Decimal] = Field(None, gt=0)
+    status: Optional[str] = Field(None, pattern="^(vacant|occupied|maintenance|inactive)$")
     description: Optional[str] = None
-    monthly_rent: Optional[Decimal] = None
-    status: Optional[str] = None
+    images: Optional[List[str]] = None
+    is_residential: Optional[bool] = None
+    tenant: Optional[str] = None
+
 
 class Property(PropertyBase):
     id: int
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+class PropertyInDB(Property):
+    pass
+
+
+# Schemas para filtros
+class PropertyFilter(BaseModel):
+    type: Optional[str] = None
+    status: Optional[str] = None
+    min_rent: Optional[Decimal] = None
+    max_rent: Optional[Decimal] = None
+    min_area: Optional[Decimal] = None
+    max_area: Optional[Decimal] = None
+    neighborhood: Optional[str] = None
+    city: Optional[str] = None
+    min_bedrooms: Optional[int] = None
+    max_bedrooms: Optional[int] = None
+    min_bathrooms: Optional[int] = None
+    max_bathrooms: Optional[int] = None
     created_at: datetime
     updated_at: datetime
 

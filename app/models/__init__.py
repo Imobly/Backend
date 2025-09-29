@@ -1,8 +1,12 @@
-# Importar todos os modelos para facilitar o acesso
-from .property import Property
-from .tenant import Tenant
-from .contract import Contract
-from .payment import Payment
-from .maintenance import Maintenance
+# Modelos migrados para estrutura de features
+# Os modelos agora estão em:
+# - app.properties.models.Property
+# - app.tenants.models.Tenant  
+# - app.contracts.models.Contract
+# - app.payments.models.Payment
+# - app.units.models.Unit
+# - app.expenses.models.Expense
+# - app.notifications.models.Notification
 
-__all__ = ["Property", "Tenant", "Contract", "Payment", "Maintenance"]
+# Manter apenas para compatibilidade temporária
+__all__ = []

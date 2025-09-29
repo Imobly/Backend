@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from app.models.property import Property
+from app.properties.models import Property
 from app.schemas.property import PropertyCreate, PropertyUpdate
 from datetime import datetime
 
