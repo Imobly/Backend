@@ -17,7 +17,7 @@ Este é o backend da aplicação de gestão de imóveis, desenvolvido com FastAP
    ```
 
    Isso irá:
-   - Configurar o banco MySQL automaticamente
+   - Configurar o banco PostgreSQL automaticamente
    - Instalar todas as dependências
    - Executar a API na porta 8000
    - Configurar auto-reload para desenvolvimento
@@ -66,7 +66,7 @@ A API estará disponível em: `http://localhost:8000`
 
 ```env
 # Banco de dados
-DATABASE_URL=mysql+pymysql://root:admin123@localhost:3306/imovel_gestao
+DATABASE_URL=postgresql://postgres:admin123@localhost:5432/imovel_gestao
 
 # Segurança
 SECRET_KEY=your-secret-key-here
@@ -94,7 +94,7 @@ Para adicionar novas URLs, modifique a configuração em `app/core/config.py` ou
 ## 🗄️ Banco de Dados
 
 ### Com Docker
-O docker-compose.yml já configura um MySQL automático.
+O docker-compose.yml já configura um PostgreSQL automático com pgAdmin.
 
 ### Manual
 1. Instale MySQL

@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     # Database Settings
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL", 
-        "mysql+pymysql://root:admin123@mysql:3306/imovel_gestao"
+        "postgresql://postgres:admin123@postgres:5432/imovel_gestao"
     )
     
     # Database Pool Settings
@@ -53,8 +53,8 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "uploads"
     ALLOWED_EXTENSIONS: set = {".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx"}
     
-    # Redis Settings
-    REDIS_URL: str = os.getenv("REDIS_URL", "redis://redis:6379/0")
+    # Redis Settings (desabilitado - não sendo usado)
+    # REDIS_URL: str = os.getenv("REDIS_URL", "redis://redis:6379/0")
     
     class Config:
         env_file = ".env"

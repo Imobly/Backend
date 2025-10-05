@@ -12,68 +12,36 @@ services:
       - "8000:8000"
     environment:
       - DEBUG=true
-      - DATABASE_URL=mysql+pymysql://root:admin123@mysql:3306/imovel_gestao
-      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://postgres:admin123@postgres:5432/imovel_gestao
     volumes:
       - .:/app
       - ./uploads:/app/uploads
       - ./logs:/app/logs
     depends_on:
-      - mysql
-      - redis
+      - postgres
     networks:
       - app-network
 
-  # Banco de dados MySQL
-  mysql:
-    image: mysql:8.0
-    container_name: imovel_mysql
+  # Banco de dados PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: imovel_postgres
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: admin123
-      MYSQL_DATABASE: imovel_gestao
-      MYSQL_USER: app_user
-      MYSQL_PASSWORD: app_password
+      POSTGRES_DB: imovel_gestao
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    command: --default-authentication-plugin=mysql_native_password
-    networks:
-      - app-network
-
-  # Redis para cache e sessões
-  redis:
-    image: redis:7-alpine
-    container_name: imovel_redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - app-network
-
-  # Nginx para proxy reverso (opcional)
-  nginx:
-    image: nginx:alpine
-    container_name: imovel_nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./uploads:/var/www/uploads:ro
-    depends_on:
-      - backend
     networks:
       - app-network
 
 volumes:
-  mysql_data:
-    driver: local
-  redis_data:
+  postgres_data:
     driver: local
 
 networks:

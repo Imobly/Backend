@@ -1,14 +1,14 @@
 from fastapi import APIRouter
 
-# Importar routers das novas features
-from app.properties.router import router as properties_router
-from app.tenants.router import router as tenants_router
-from app.units.router import router as units_router
-from app.contracts.router import router as contracts_router
-from app.payments.router import router as payments_router
-from app.expenses.router import router as expenses_router
-from app.notifications.router import router as notifications_router
-from app.dashboard.router import router as dashboard_router
+# Importar routers da nova estrutura src/
+from app.src.properties.router import router as properties_router
+from app.src.tenants.router import router as tenants_router
+from app.src.units.router import router as units_router
+from app.src.contracts.router import router as contracts_router
+from app.src.payments.router import router as payments_router
+from app.src.expenses.router import router as expenses_router
+from app.src.notifications.router import router as notifications_router
+from app.src.dashboard.router import router as dashboard_router
 
 api_router = APIRouter()
 
