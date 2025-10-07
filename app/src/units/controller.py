@@ -1,15 +1,16 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from .repository import unit_repository
+from .repository import UnitRepository
 from .schemas import Unit, UnitCreate, UnitUpdate
 
 
 class unit_controller:
     """Controller para gerenciar operações de unidades"""
     
-    def __init__(self):
-        self.repository = unit_repository
+    def __init__(self, db: Session):
+        self.db = db
+        self.repository = UnitRepository(db)
     
     def get_units(self, db: Session, skip: int = 0, limit: int = 100) -> List[Unit]:
         """Listar unidades"""
@@ -67,4 +68,3 @@ class unit_controller:
 
 
 # Instância global do controller
-unit_controller = unit_controller()

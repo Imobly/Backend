@@ -1,7 +1,7 @@
 # Contracts module
 from .models import Contract
 from .schemas import ContractCreate, ContractUpdate, Contract
-from .repository import contract_repository
+from .repository import ContractRepository
 from .controller import contract_controller
 from .router import router
 

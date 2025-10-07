@@ -20,7 +20,7 @@ def get_properties(
     db: Session = Depends(get_db)
 ):
     """Listar propriedades com filtros opcionais"""
-    properties = property_controller.get_properties(
+    properties = property_controller(db).get_properties(
         db=db,
         skip=skip,
         limit=limit,
@@ -36,16 +36,16 @@ def get_properties(
 @router.get("/available", response_model=List[PropertyResponse])
 def get_available_properties(db: Session = Depends(get_db)):
     """Listar apenas propriedades disponíveis"""
-    properties = property_controller.get_available_properties(db)
+    properties = property_controller(db).get_available_properties(db)
     return properties
 
-@router.post("/", response_model=PropertyResponse)
+@router.post("/", response_model=PropertyResponse, status_code=201)
 def create_property(
     property: PropertyCreate, 
     db: Session = Depends(get_db)
 ):
     """Criar nova propriedade"""
-    new_property = property_controller.create_property(db=db, property_data=property)
+    new_property = property_controller(db).create_property(db=db, property_data=property)
     return new_property
 
 @router.get("/{property_id}", response_model=PropertyResponse)
@@ -54,7 +54,7 @@ def get_property(
     db: Session = Depends(get_db)
 ):
     """Obter propriedade por ID"""
-    property_obj = property_controller.get_property_by_id(db, property_id=property_id)
+    property_obj = property_controller(db).get_property_by_id(db, property_id=property_id)
     return property_obj
 
 @router.put("/{property_id}", response_model=PropertyResponse)
@@ -64,7 +64,7 @@ def update_property(
     db: Session = Depends(get_db)
 ):
     """Atualizar propriedade"""
-    updated_property = property_controller.update_property(
+    updated_property = property_controller(db).update_property(
         db, property_id=property_id, property_data=property
     )
     return updated_property
@@ -76,7 +76,7 @@ def update_property_status(
     db: Session = Depends(get_db)
 ):
     """Atualizar apenas o status da propriedade"""
-    updated_property = property_controller.update_property_status(
+    updated_property = property_controller(db).update_property_status(
         db, property_id=property_id, status=status
     )
     return updated_property
@@ -87,5 +87,5 @@ def delete_property(
     db: Session = Depends(get_db)
 ):
     """Deletar propriedade"""
-    property_controller.delete_property(db, property_id=property_id)
+    property_controller(db).delete_property(db, property_id=property_id)
     return {"message": "Propriedade deletada com sucesso"}

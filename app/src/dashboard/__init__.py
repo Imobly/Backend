@@ -1,5 +1,5 @@
 # Dashboard module
-from .controller import dashboard_controller
+from .controller import DashboardController
 from .router import router
 
 __all__ = [

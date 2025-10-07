@@ -1,7 +1,7 @@
 from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from .repository import tenant_repository
+from .repository import TenantRepository
 from .schemas import TenantResponse, TenantCreate, TenantUpdate
 from app.db.session import get_db
 
@@ -9,8 +9,9 @@ from app.db.session import get_db
 class tenant_controller:
     """Controller para gerenciar operações de inquilinos"""
     
-    def __init__(self):
-        self.repository = tenant_repository
+    def __init__(self, db: Session):
+        self.db = db
+        self.repository = TenantRepository(db)
     
     def get_tenants(
         self, 
@@ -126,4 +127,3 @@ class tenant_controller:
 
 
 # Instância global do controller
-tenant_controller = tenant_controller()

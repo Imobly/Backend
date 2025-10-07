@@ -6,11 +6,12 @@ from .schemas import ExpenseCreate, ExpenseUpdate
 from app.db.base_repository import BaseRepository
 
 
-class expense_repository(BaseRepository[Expense, ExpenseCreate, ExpenseUpdate]):
+class ExpenseRepository(BaseRepository[Expense, ExpenseCreate, ExpenseUpdate]):
     """Repository para operações com despesas"""
     
-    def __init__(self):
+    def __init__(self, db: Session):
         super().__init__(Expense)
+        self.db = db
     
     def get_by_property(self, db: Session, property_id: int) -> List[Expense]:
         """Buscar despesas por propriedade"""
@@ -76,5 +77,3 @@ class expense_repository(BaseRepository[Expense, ExpenseCreate, ExpenseUpdate]):
         return [row[0] for row in result]
 
 
-# Instância global do repository
-expense_repository = expense_repository()

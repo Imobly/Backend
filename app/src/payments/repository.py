@@ -7,11 +7,12 @@ from .schemas import PaymentCreate, PaymentUpdate
 from app.db.base_repository import BaseRepository
 
 
-class payment_repository(BaseRepository[Payment, PaymentCreate, PaymentUpdate]):
+class PaymentRepository(BaseRepository[Payment, PaymentCreate, PaymentUpdate]):
     """Repository para operações com pagamentos"""
     
-    def __init__(self):
+    def __init__(self, db: Session):
         super().__init__(Payment)
+        self.db = db
     
     def get_by_contract(self, db: Session, contract_id: int) -> List[Payment]:
         """Buscar pagamentos por contrato"""
@@ -97,5 +98,3 @@ class payment_repository(BaseRepository[Payment, PaymentCreate, PaymentUpdate]):
         return None
 
 
-# Instância global do repository
-payment_repository = payment_repository()

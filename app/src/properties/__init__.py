@@ -4,7 +4,7 @@ Properties module - Gestão de propriedades
 
 from .models import Property
 from .schemas import PropertyCreate, PropertyUpdate, PropertyResponse
-from .repository import property_repository
+from .repository import PropertyRepository
 from .controller import property_controller
 from .router import router
 

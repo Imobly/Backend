@@ -5,11 +5,12 @@ from .schemas import TenantCreate, TenantUpdate
 from app.db.base_repository import BaseRepository
 
 
-class tenant_repository(BaseRepository[Tenant, TenantCreate, TenantUpdate]):
+class TenantRepository(BaseRepository[Tenant, TenantCreate, TenantUpdate]):
     """Repository para operações com inquilinos"""
     
-    def __init__(self):
+    def __init__(self, db: Session):
         super().__init__(Tenant)
+        self.db = db
     
     def get_by_email(self, db: Session, email: str) -> Optional[Tenant]:
         """Buscar inquilino por email"""
@@ -60,15 +61,13 @@ class tenant_repository(BaseRepository[Tenant, TenantCreate, TenantUpdate]):
             errors["email"] = "Email já está em uso"
         
         # Verificar CPF único
-        cpf_query = db.query(Tenant).filter(Tenant.cpf == tenant_data.cpf)
+        cpf_query = db.query(Tenant).filter(Tenant.cpf_cnpj == tenant_data.cpf_cnpj)
         if exclude_id:
             cpf_query = cpf_query.filter(Tenant.id != exclude_id)
         
         if cpf_query.first():
-            errors["cpf"] = "CPF já está em uso"
+            errors["cpf_cnpj"] = "CPF/CNPJ já está em uso"
         
         return errors
 
 
-# Instância global do repository
-tenant_repository = tenant_repository()

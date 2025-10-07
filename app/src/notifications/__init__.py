@@ -1,7 +1,7 @@
 # Notifications module
 from .models import Notification
 from .schemas import NotificationCreate, NotificationUpdate, Notification
-from .repository import notification_repository
+from .repository import NotificationRepository
 from .controller import notification_controller
 from .router import router
 

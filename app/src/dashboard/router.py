@@ -3,23 +3,39 @@ from sqlalchemy.orm import Session
 from datetime import date, datetime, timedelta
 
 from app.db.session import get_db
-from app.src.properties.repository import property_repository
-from app.src.contracts.repository import contract_repository
-from app.src.payments.repository import payment_repository
-from app.src.expenses.repository import expense_repository
-from app.src.notifications.repository import notification_repository
+from app.src.properties.repository import PropertyRepository
+from app.src.contracts.repository import ContractRepository
+from app.src.payments.repository import PaymentRepository
+from app.src.expenses.repository import ExpenseRepository
+from app.src.notifications.repository import NotificationRepository
 
 router = APIRouter()
+
+@router.get("/stats")
+async def get_dashboard_stats(db: Session = Depends(get_db)):
+    """Obter estatísticas básicas do dashboard"""
+    
+    property_repo = PropertyRepository(db)
+    
+    # Estatísticas básicas
+    stats = {
+        "total_properties": property_repo.count_all() if hasattr(property_repo, 'count_all') else 0,
+        "total_tenants": 0,  # Implementar conforme necessário
+        "total_contracts": 0,  # Implementar conforme necessário
+        "monthly_revenue": 0.0  # Implementar conforme necessário
+    }
+    
+    return stats
 
 @router.get("/summary")
 async def get_dashboard_summary(db: Session = Depends(get_db)):
     """Obter resumo do dashboard"""
     
-    property_repo = property_repository(db)
-    contract_repo = contract_repository(db)
-    payment_repo = payment_repository(db)
-    expense_repo = expense_repository(db)
-    notification_repo = notification_repository(db)
+    property_repo = PropertyRepository(db)
+    contract_repo = ContractRepository(db)
+    payment_repo = PaymentRepository(db)
+    expense_repo = ExpenseRepository(db)
+    notification_repo = NotificationRepository(db)
     
     # Contadores básicos
     total_properties = property_repo.count_all()
@@ -77,7 +93,7 @@ async def get_revenue_chart(
     db: Session = Depends(get_db)
 ):
     """Obter dados para gráfico de receitas"""
-    payment_repo = payment_repository(db)
+    payment_repo = PaymentRepository(db)
     
     chart_data = []
     current_date = date.today()
@@ -102,7 +118,7 @@ async def get_expense_chart(
     db: Session = Depends(get_db)
 ):
     """Obter dados para gráfico de despesas"""
-    expense_repo = expense_repository(db)
+    expense_repo = ExpenseRepository(db)
     
     chart_data = []
     current_date = date.today()
@@ -124,9 +140,9 @@ async def get_expense_chart(
 @router.get("/property-performance")
 async def get_property_performance(db: Session = Depends(get_db)):
     """Obter performance das propriedades"""
-    property_repo = property_repository(db)
-    payment_repo = payment_repository(db)
-    expense_repo = expense_repository(db)
+    property_repo = PropertyRepository(db)
+    payment_repo = PaymentRepository(db)
+    expense_repo = ExpenseRepository(db)
     
     properties = property_repo.get_all()
     performance_data = []
@@ -162,8 +178,8 @@ async def get_recent_activity(
     db: Session = Depends(get_db)
 ):
     """Obter atividades recentes"""
-    payment_repo = payment_repository(db)
-    contract_repo = contract_repository(db)
+    payment_repo = PaymentRepository(db)
+    contract_repo = ContractRepository(db)
     
     # Pagamentos recentes
     recent_payments = payment_repo.get_recent_payments(limit // 2)

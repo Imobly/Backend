@@ -5,11 +5,12 @@ from .schemas import PropertyCreate, PropertyUpdate
 from app.db.base_repository import BaseRepository
 
 
-class property_repository(BaseRepository[Property, PropertyCreate, PropertyUpdate]):
+class PropertyRepository(BaseRepository[Property, PropertyCreate, PropertyUpdate]):
     """Repository para operações com propriedades"""
     
-    def __init__(self):
+    def __init__(self, db: Session):
         super().__init__(Property)
+        self.db = db
     
     def get_by_status(self, db: Session, status: str) -> List[Property]:
         """Buscar propriedades por status"""
@@ -70,5 +71,3 @@ class property_repository(BaseRepository[Property, PropertyCreate, PropertyUpdat
         return None
 
 
-# Instância global do repository
-property_repository = property_repository()

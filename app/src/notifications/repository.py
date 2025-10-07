@@ -6,11 +6,12 @@ from .schemas import NotificationCreate, NotificationUpdate
 from app.db.base_repository import BaseRepository
 
 
-class notification_repository(BaseRepository[Notification, NotificationCreate, NotificationUpdate]):
+class NotificationRepository(BaseRepository[Notification, NotificationCreate, NotificationUpdate]):
     """Repository para operações com notificações"""
     
-    def __init__(self):
+    def __init__(self, db: Session):
         super().__init__(Notification)
+        self.db = db
     
     def get_by_type(self, db: Session, notification_type: str) -> List[Notification]:
         """Buscar notificações por tipo"""
@@ -79,5 +80,3 @@ class notification_repository(BaseRepository[Notification, NotificationCreate, N
         ).limit(limit).all()
 
 
-# Instância global do repository
-notification_repository = notification_repository()

@@ -1,15 +1,16 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from .repository import notification_repository
+from .repository import NotificationRepository
 from .schemas import Notification, NotificationCreate, NotificationUpdate
 
 
 class notification_controller:
     """Controller para gerenciar operações de notificações"""
     
-    def __init__(self):
-        self.repository = notification_repository
+    def __init__(self, db: Session):
+        self.db = db
+        self.repository = NotificationRepository(db)
     
     def get_notifications(self, db: Session, skip: int = 0, limit: int = 100) -> List[Notification]:
         """Listar notificações"""
@@ -69,4 +70,3 @@ class notification_controller:
 
 
 # Instância global do controller
-notification_controller = notification_controller()

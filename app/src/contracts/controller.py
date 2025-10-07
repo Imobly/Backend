@@ -2,17 +2,18 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import date, timedelta
-from .repository import contract_repository
-from app.src.payments.repository import payment_repository
+from .repository import ContractRepository
+from app.src.payments.repository import PaymentRepository
 from .schemas import ContractResponse, ContractCreate, ContractUpdate
 
 
 class contract_controller:
     """Controller para gerenciar operações de contratos"""
     
-    def __init__(self):
-        self.repository = contract_repository
-        self.payment_repository = payment_repository
+    def __init__(self, db: Session):
+        self.db = db
+        self.repository = ContractRepository(db)
+        self.payment_repository = PaymentRepository(db)
     
     def get_contracts(
         self, 
@@ -98,4 +99,3 @@ class contract_controller:
 
 
 # Instância global do controller
-contract_controller = contract_controller()

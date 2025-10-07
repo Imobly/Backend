@@ -1,15 +1,16 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from .repository import expense_repository
+from .repository import ExpenseRepository
 from .schemas import Expense, ExpenseCreate, ExpenseUpdate
 
 
 class expense_controller:
     """Controller para gerenciar operações de despesas"""
     
-    def __init__(self):
-        self.repository = expense_repository
+    def __init__(self, db: Session):
+        self.db = db
+        self.repository = ExpenseRepository(db)
     
     def get_expenses(self, db: Session, skip: int = 0, limit: int = 100) -> List[Expense]:
         """Listar despesas"""
@@ -63,4 +64,3 @@ class expense_controller:
 
 
 # Instância global do controller
-expense_controller = expense_controller()

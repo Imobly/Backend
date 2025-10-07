@@ -7,11 +7,12 @@ from .schemas import ContractCreate, ContractUpdate
 from app.db.base_repository import BaseRepository
 
 
-class contract_repository(BaseRepository[Contract, ContractCreate, ContractUpdate]):
+class ContractRepository(BaseRepository[Contract, ContractCreate, ContractUpdate]):
     """Repository para operações com contratos"""
     
-    def __init__(self):
+    def __init__(self, db: Session):
         super().__init__(Contract)
+        self.db = db
     
     def get_by_property(self, db: Session, property_id: int) -> List[Contract]:
         """Buscar contratos por propriedade"""
@@ -116,5 +117,3 @@ class contract_repository(BaseRepository[Contract, ContractCreate, ContractUpdat
         return None
 
 
-# Instância global do repository
-contract_repository = contract_repository()

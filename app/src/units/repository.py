@@ -5,11 +5,12 @@ from .schemas import UnitCreate, UnitUpdate
 from app.db.base_repository import BaseRepository
 
 
-class unit_repository(BaseRepository[Unit, UnitCreate, UnitUpdate]):
+class UnitRepository(BaseRepository[Unit, UnitCreate, UnitUpdate]):
     """Repository para operações com unidades"""
     
-    def __init__(self):
+    def __init__(self, db: Session):
         super().__init__(Unit)
+        self.db = db
     
     def get_by_property(self, db: Session, property_id: int) -> List[Unit]:
         """Buscar unidades por propriedade"""
@@ -66,5 +67,3 @@ class unit_repository(BaseRepository[Unit, UnitCreate, UnitUpdate]):
         return None
 
 
-# Instância global do repository
-unit_repository = unit_repository()

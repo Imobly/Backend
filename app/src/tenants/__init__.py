@@ -1,7 +1,7 @@
 # Tenants module
 from .models import Tenant
 from .schemas import TenantCreate, TenantUpdate, TenantResponse
-from .repository import tenant_repository
+from .repository import TenantRepository
 from .controller import tenant_controller
 from .router import router
 

@@ -1,19 +1,20 @@
 from sqlalchemy.orm import Session
 from typing import Dict, Any
-from app.src.properties.repository import property_repository
-from app.src.contracts.repository import contract_repository
-from app.src.payments.repository import payment_repository
-from app.src.tenants.repository import tenant_repository
+from app.src.properties.repository import PropertyRepository
+from app.src.contracts.repository import ContractRepository
+from app.src.payments.repository import PaymentRepository
+from app.src.tenants.repository import TenantRepository
 
 
 class DashboardController:
     """Controller para gerenciar operações do dashboard"""
     
-    def __init__(self):
-        self.property_repo = property_repository
-        self.contract_repo = contract_repository
-        self.payment_repo = payment_repository
-        self.tenant_repo = tenant_repository
+    def __init__(self, db: Session):
+        self.db = db
+        self.property_repo = PropertyRepository(db)
+        self.contract_repo = ContractRepository(db)
+        self.payment_repo = PaymentRepository(db)
+        self.tenant_repo = TenantRepository(db)
     
     def get_overview(self, db: Session) -> Dict[str, Any]:
         """Obter visão geral do dashboard"""
@@ -71,5 +72,4 @@ class DashboardController:
         }
 
 
-# Instância global do controller
-dashboard_controller = DashboardController()
+# Controller class ready for use

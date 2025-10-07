@@ -1,7 +1,7 @@
 # Payments module
 from .models import Payment
 from .schemas import PaymentCreate, PaymentUpdate, Payment
-from .repository import payment_repository
+from .repository import PaymentRepository
 from .controller import payment_controller
 from .router import router
 

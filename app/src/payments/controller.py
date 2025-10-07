@@ -3,17 +3,18 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
-from .repository import payment_repository
-from app.src.contracts.repository import contract_repository
+from .repository import PaymentRepository
+from app.src.contracts.repository import ContractRepository
 from .schemas import PaymentResponse, PaymentCreate, PaymentUpdate, PaymentBulkCreate
 
 
 class payment_controller:
     """Controller para gerenciar operações de pagamentos"""
     
-    def __init__(self):
-        self.repository = payment_repository
-        self.contract_repository = contract_repository
+    def __init__(self, db: Session):
+        self.db = db
+        self.repository = PaymentRepository(db)
+        self.contract_repository = ContractRepository(db)
     
     def get_payments(
         self, 
@@ -122,4 +123,3 @@ class payment_controller:
 
 
 # Instância global do controller
-payment_controller = payment_controller()

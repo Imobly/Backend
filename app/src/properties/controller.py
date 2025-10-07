@@ -1,15 +1,16 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from .repository import property_repository
+from .repository import PropertyRepository
 from .schemas import PropertyResponse, PropertyCreate, PropertyUpdate
 
 
 class property_controller:
     """Controller para gerenciar operações de propriedades"""
     
-    def __init__(self):
-        self.repository = property_repository
+    def __init__(self, db: Session):
+        self.db = db
+        self.repository = PropertyRepository(db)
     
     def get_properties(
         self, 
@@ -111,5 +112,3 @@ class property_controller:
         return property_obj
 
 
-# Instância global do controller
-property_controller = property_controller()
