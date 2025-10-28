@@ -110,6 +110,7 @@ def sample_unit_data():
 def sample_contract_data():
     """Sample contract data for tests"""
     from datetime import date
+
     return {
         "title": "Test Contract",
         "property_id": 1,
@@ -128,6 +129,7 @@ def sample_contract_data():
 def sample_payment_data():
     """Sample payment data for tests"""
     from datetime import date
+
     return {
         "property_id": 1,
         "tenant_id": 1,
@@ -144,6 +146,7 @@ def sample_payment_data():
 def sample_expense_data():
     """Sample expense data for tests"""
     from datetime import date
+
     return {
         "property_id": 1,
         "description": "Test Expense",
