@@ -1,0 +1,29 @@
+FROM python:3.11-slim as tester
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    pkg-config \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt requirements-dev.txt ./
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements-dev.txt
+
+# Copy application
+COPY . .
+
+# Set environment
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# Run linting and tests
+CMD ["sh", "-c", "echo '=== Running Black ===' && black --check --line-length 100 app tests && echo '=== Running isort ===' && isort --check-only app tests && echo '=== Running Flake8 ===' && flake8 app tests && echo '=== Running MyPy ===' && mypy app && echo '=== Running Tests ===' && pytest -v --cov=app --cov-report=html --cov-report=term-missing"]
