@@ -109,12 +109,13 @@ def sample_unit_data():
 @pytest.fixture
 def sample_contract_data():
     """Sample contract data for tests"""
+    from datetime import date
     return {
         "title": "Test Contract",
         "property_id": 1,
         "tenant_id": 1,
-        "start_date": "2025-01-01",
-        "end_date": "2026-01-01",
+        "start_date": date(2025, 1, 1),
+        "end_date": date(2026, 1, 1),
         "rent": 1500.00,
         "deposit": 1500.00,
         "interest_rate": 1.0,
@@ -126,11 +127,12 @@ def sample_contract_data():
 @pytest.fixture
 def sample_payment_data():
     """Sample payment data for tests"""
+    from datetime import date
     return {
         "property_id": 1,
         "tenant_id": 1,
         "contract_id": 1,
-        "due_date": "2025-01-05",
+        "due_date": date(2025, 1, 5),
         "amount": 1500.00,
         "fine_amount": 0.0,
         "total_amount": 1500.00,
@@ -141,12 +143,13 @@ def sample_payment_data():
 @pytest.fixture
 def sample_expense_data():
     """Sample expense data for tests"""
+    from datetime import date
     return {
         "property_id": 1,
         "description": "Test Expense",
         "amount": 250.00,
         "category": "maintenance",
-        "due_date": "2025-01-10",
+        "due_date": date(2025, 1, 10),
         "status": "pending",
     }
 

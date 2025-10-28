@@ -1,5 +1,7 @@
 """Integration tests for complete payment flow"""
 
+from datetime import date
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -32,6 +34,9 @@ class TestPaymentFlow:
         contract_data = sample_contract_data.copy()
         contract_data["property_id"] = property_id
         contract_data["tenant_id"] = tenant_id
+        # Convert dates to strings for JSON
+        contract_data["start_date"] = contract_data["start_date"].isoformat()
+        contract_data["end_date"] = contract_data["end_date"].isoformat()
 
         response = client.post("/api/v1/contracts/", json=contract_data)
         assert response.status_code == 201
@@ -42,6 +47,8 @@ class TestPaymentFlow:
         payment_data["property_id"] = property_id
         payment_data["tenant_id"] = tenant_id
         payment_data["contract_id"] = contract_id
+        # Convert date to string for JSON
+        payment_data["due_date"] = payment_data["due_date"].isoformat()
 
         response = client.post("/api/v1/payments/", json=payment_data)
         assert response.status_code == 201
@@ -75,6 +82,8 @@ class TestPaymentFlow:
         """Test that payment creation requires valid contract"""
         payment_data = sample_payment_data.copy()
         payment_data["contract_id"] = 99999  # Non-existent contract
+        # Convert date to string for JSON
+        payment_data["due_date"] = payment_data["due_date"].isoformat()
 
         response = client.post("/api/v1/payments/", json=payment_data)
         # Should fail with 400, 404, or 422

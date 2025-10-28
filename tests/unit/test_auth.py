@@ -147,7 +147,7 @@ class TestAuthEndpoints:
         headers = {"Authorization": "Bearer token_invalido"}
         response = client.get("/api/v1/auth/me", headers=headers)
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_update_me(self, client, auth_headers):
         """Testar atualização de dados do usuário"""

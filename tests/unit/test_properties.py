@@ -56,7 +56,9 @@ class TestPropertyRepository:
         created = repo.create(db, obj_in=property_create)
         property_id = created.id
 
-        repo.remove(db, id=property_id)
+        # Delete using the model instance
+        db.delete(created)
+        db.commit()
 
         deleted = repo.get(db, id=property_id)
         assert deleted is None
