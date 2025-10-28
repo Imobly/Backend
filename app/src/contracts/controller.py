@@ -1,29 +1,33 @@
+from datetime import date
+from typing import Optional, Sequence
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from datetime import date, timedelta
-from .repository import ContractRepository
+
 from app.src.payments.repository import PaymentRepository
-from .schemas import ContractResponse, ContractCreate, ContractUpdate
+
+from .models import Contract
+from .repository import ContractRepository
+from .schemas import ContractCreate, ContractResponse, ContractUpdate
 
 
 class contract_controller:
     """Controller para gerenciar operações de contratos"""
-    
+
     def __init__(self, db: Session):
         self.db = db
         self.repository = ContractRepository(db)
         self.payment_repository = PaymentRepository(db)
-    
+
     def get_contracts(
-        self, 
+        self,
         db: Session,
-        skip: int = 0, 
+        skip: int = 0,
         limit: int = 100,
         status: Optional[str] = None,
         property_id: Optional[int] = None,
-        tenant_id: Optional[int] = None
-    ) -> List[ContractResponse]:
+        tenant_id: Optional[int] = None,
+    ) -> Sequence[Contract]:
         """Listar contratos com filtros"""
         if status:
             contracts = self.repository.get_by_status(db, status)
@@ -33,16 +37,20 @@ class contract_controller:
             contracts = self.repository.get_by_tenant(db, tenant_id)
         else:
             contracts = self.repository.get_multi(db, skip=skip, limit=limit)
-        
-        return contracts[skip:skip+limit] if not any([status, property_id, tenant_id]) else contracts
-    
+
+        return (
+            contracts[skip : skip + limit]
+            if not any([status, property_id, tenant_id])
+            else contracts
+        )
+
     def get_contract_by_id(self, db: Session, contract_id: int) -> ContractResponse:
         """Obter contrato por ID"""
         contract_obj = self.repository.get(db, contract_id)
         if not contract_obj:
             raise HTTPException(status_code=404, detail="Contrato não encontrado")
         return contract_obj
-    
+
     def create_contract(self, db: Session, contract_data: ContractCreate) -> ContractResponse:
         """Criar novo contrato"""
         # Verificar se propriedade está disponível no período
@@ -50,46 +58,38 @@ class contract_controller:
             db, contract_data.property_id, contract_data.start_date, contract_data.end_date
         ):
             raise HTTPException(
-                status_code=400, 
-                detail="Propriedade não disponível no período especificado"
+                status_code=400, detail="Propriedade não disponível no período especificado"
             )
-        
+
         return self.repository.create(db, obj_in=contract_data)
-    
+
     def update_contract(
-        self, 
-        db: Session, 
-        contract_id: int, 
-        contract_data: ContractUpdate
+        self, db: Session, contract_id: int, contract_data: ContractUpdate
     ) -> ContractResponse:
         """Atualizar contrato"""
         contract_obj = self.repository.get(db, contract_id)
         if not contract_obj:
             raise HTTPException(status_code=404, detail="Contrato não encontrado")
-        
+
         return self.repository.update(db, db_obj=contract_obj, obj_in=contract_data)
-    
+
     def delete_contract(self, db: Session, contract_id: int) -> dict:
         """Deletar contrato"""
         success = self.repository.delete(db, id=contract_id)
         if not success:
             raise HTTPException(status_code=404, detail="Contrato não encontrado")
         return {"message": "Contrato deletado com sucesso"}
-    
-    def get_expiring_contracts(self, db: Session, days_ahead: int = 30) -> List[ContractResponse]:
+
+    def get_expiring_contracts(self, db: Session, days_ahead: int = 30) -> Sequence[Contract]:
         """Obter contratos que vencem em breve"""
         return self.repository.get_expiring_contracts(db, days_ahead)
-    
-    def get_active_contracts(self, db: Session) -> List[ContractResponse]:
+
+    def get_active_contracts(self, db: Session) -> Sequence[Contract]:
         """Obter contratos ativos"""
         return self.repository.get_active_contracts(db)
-    
+
     def renew_contract(
-        self, 
-        db: Session, 
-        contract_id: int, 
-        new_end_date: date,
-        new_rent: Optional[float] = None
+        self, db: Session, contract_id: int, new_end_date: date, new_rent: Optional[float] = None
     ) -> ContractResponse:
         """Renovar contrato"""
         contract_obj = self.repository.renew_contract(db, contract_id, new_end_date, new_rent)

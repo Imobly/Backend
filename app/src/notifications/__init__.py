@@ -1,15 +1,14 @@
 # Notifications module
-from .models import Notification
-from .schemas import NotificationCreate, NotificationUpdate, Notification
-from .repository import NotificationRepository
 from .controller import notification_controller
+from .models import Notification
 from .router import router
+from .schemas import NotificationCreate, NotificationUpdate
 
 __all__ = [
     "Notification",
-    "NotificationCreate", 
+    "NotificationCreate",
     "NotificationUpdate",
     "notification_repository",
     "notification_controller",
-    "router"
+    "router",
 ]

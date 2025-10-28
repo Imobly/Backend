@@ -1,15 +1,14 @@
 # Contracts module
-from .models import Contract
-from .schemas import ContractCreate, ContractUpdate, Contract
-from .repository import ContractRepository
 from .controller import contract_controller
+from .models import Contract
 from .router import router
+from .schemas import ContractCreate, ContractUpdate
 
 __all__ = [
     "Contract",
-    "ContractCreate", 
+    "ContractCreate",
     "ContractUpdate",
     "contract_repository",
     "contract_controller",
-    "router"
+    "router",
 ]
