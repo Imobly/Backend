@@ -1,141 +1,125 @@
+from datetime import date, timedelta
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from datetime import date, datetime, timedelta
 
 from app.db.session import get_db
-from app.src.properties.repository import PropertyRepository
 from app.src.contracts.repository import ContractRepository
-from app.src.payments.repository import PaymentRepository
 from app.src.expenses.repository import ExpenseRepository
 from app.src.notifications.repository import NotificationRepository
+from app.src.payments.repository import PaymentRepository
+from app.src.properties.repository import PropertyRepository
 
 router = APIRouter()
+
 
 @router.get("/stats")
 async def get_dashboard_stats(db: Session = Depends(get_db)):
     """Obter estatísticas básicas do dashboard"""
-    
+
     property_repo = PropertyRepository(db)
-    
+
     # Estatísticas básicas
     stats = {
-        "total_properties": property_repo.count_all() if hasattr(property_repo, 'count_all') else 0,
+        "total_properties": property_repo.count_all() if hasattr(property_repo, "count_all") else 0,
         "total_tenants": 0,  # Implementar conforme necessário
         "total_contracts": 0,  # Implementar conforme necessário
-        "monthly_revenue": 0.0  # Implementar conforme necessário
+        "monthly_revenue": 0.0,  # Implementar conforme necessário
     }
-    
+
     return stats
+
 
 @router.get("/summary")
 async def get_dashboard_summary(db: Session = Depends(get_db)):
     """Obter resumo do dashboard"""
-    
+
     property_repo = PropertyRepository(db)
     contract_repo = ContractRepository(db)
     payment_repo = PaymentRepository(db)
     expense_repo = ExpenseRepository(db)
     notification_repo = NotificationRepository(db)
-    
+
     # Contadores básicos
-    total_properties = property_repo.count_all()
-    total_contracts = contract_repo.count_active()
+    property_repo.count_all()
+    contract_repo.count_active()
     total_units = property_repo.count_total_units()
     occupied_units = contract_repo.count_occupied_units()
-    
+
     # Taxa de ocupação
-    occupancy_rate = (occupied_units / total_units * 100) if total_units > 0 else 0
-    
+    (occupied_units / total_units * 100) if total_units > 0 else 0
+
     # Receitas e despesas do mês atual
     current_month = date.today().month
     current_year = date.today().year
-    
+
     monthly_revenue = payment_repo.get_monthly_revenue(current_year, current_month)
     monthly_expenses = expense_repo.get_monthly_total(current_year, current_month)
-    
+
     # Lucro líquido
-    net_profit = monthly_revenue - monthly_expenses
-    
+    monthly_revenue - monthly_expenses
+
     # Pagamentos em atraso
-    overdue_payments = len(payment_repo.get_overdue_payments())
-    
+    len(payment_repo.get_overdue_payments())
+
     # Contratos vencendo em 30 dias
-    expiring_contracts = len(contract_repo.get_expiring_contracts(30))
-    
+    len(contract_repo.get_expiring_contracts(30))
+
     # Notificações não lidas
-    unread_notifications = notification_repo.get_unread_count()
-    
+    notification_repo.get_unread_count()
+
     return {
-        "properties": {
-            "total": 0,
-            "total_units": 0,
-            "occupied_units": 0,
-            "occupancy_rate": 0.0
-        },
-        "contracts": {
-            "active": 0,
-            "expiring_soon": 0
-        },
+        "properties": {"total": 0, "total_units": 0, "occupied_units": 0, "occupancy_rate": 0.0},
+        "contracts": {"active": 0, "expiring_soon": 0},
         "financial": {
             "monthly_revenue": 0.0,
             "monthly_expenses": 0.0,
             "net_profit": 0.0,
-            "overdue_payments": 0
+            "overdue_payments": 0,
         },
-        "notifications": {
-            "unread_count": 0
-        }
+        "notifications": {"unread_count": 0},
     }
 
+
 @router.get("/revenue-chart")
-async def get_revenue_chart(
-    months: int = 12,
-    db: Session = Depends(get_db)
-):
+async def get_revenue_chart(months: int = 12, db: Session = Depends(get_db)):
     """Obter dados para gráfico de receitas"""
     payment_repo = PaymentRepository(db)
-    
+
     chart_data = []
     current_date = date.today()
-    
+
     for i in range(months):
         target_date = current_date - timedelta(days=30 * i)
         month = target_date.month
         year = target_date.year
-        
+
         revenue = payment_repo.get_monthly_revenue(year, month)
-        
-        chart_data.append({
-            "month": f"{year}-{month:02d}",
-            "revenue": revenue
-        })
-    
+
+        chart_data.append({"month": f"{year}-{month:02d}", "revenue": revenue})
+
     return {"data": list(reversed(chart_data))}
 
+
 @router.get("/expense-chart")
-async def get_expense_chart(
-    months: int = 12,
-    db: Session = Depends(get_db)
-):
+async def get_expense_chart(months: int = 12, db: Session = Depends(get_db)):
     """Obter dados para gráfico de despesas"""
     expense_repo = ExpenseRepository(db)
-    
+
     chart_data = []
     current_date = date.today()
-    
+
     for i in range(months):
         target_date = current_date - timedelta(days=30 * i)
         month = target_date.month
         year = target_date.year
-        
+
         expenses = expense_repo.get_monthly_total(year, month)
-        
-        chart_data.append({
-            "month": f"{year}-{month:02d}",
-            "expenses": expenses
-        })
-    
+
+        chart_data.append({"month": f"{year}-{month:02d}", "expenses": expenses})
+
     return {"data": list(reversed(chart_data))}
+
 
 @router.get("/property-performance")
 async def get_property_performance(db: Session = Depends(get_db)):
@@ -143,72 +127,75 @@ async def get_property_performance(db: Session = Depends(get_db)):
     property_repo = PropertyRepository(db)
     payment_repo = PaymentRepository(db)
     expense_repo = ExpenseRepository(db)
-    
+
     properties = property_repo.get_all()
     performance_data = []
-    
+
     current_month = date.today().month
     current_year = date.today().year
-    
+
     for prop in properties:
         revenue = payment_repo.get_property_monthly_revenue(prop.id, current_year, current_month)
         expenses = expense_repo.get_property_monthly_total(prop.id, current_year, current_month)
         net_income = revenue - expenses
-        
+
         occupied_units = property_repo.get_occupied_units_count(prop.id)
         total_units = property_repo.get_total_units_count(prop.id)
         occupancy_rate = (occupied_units / total_units * 100) if total_units > 0 else 0
-        
-        performance_data.append({
-            "property_id": prop.id,
-            "property_name": prop.name,
-            "revenue": revenue,
-            "expenses": expenses,
-            "net_income": net_income,
-            "occupancy_rate": round(occupancy_rate, 2),
-            "occupied_units": occupied_units,
-            "total_units": total_units
-        })
-    
+
+        performance_data.append(
+            {
+                "property_id": prop.id,
+                "property_name": prop.name,
+                "revenue": revenue,
+                "expenses": expenses,
+                "net_income": net_income,
+                "occupancy_rate": round(occupancy_rate, 2),
+                "occupied_units": occupied_units,
+                "total_units": total_units,
+            }
+        )
+
     return {"properties": performance_data}
 
+
 @router.get("/recent-activity")
-async def get_recent_activity(
-    limit: int = 10,
-    db: Session = Depends(get_db)
-):
+async def get_recent_activity(limit: int = 10, db: Session = Depends(get_db)):
     """Obter atividades recentes"""
     payment_repo = PaymentRepository(db)
     contract_repo = ContractRepository(db)
-    
+
     # Pagamentos recentes
     recent_payments = payment_repo.get_recent_payments(limit // 2)
-    
+
     # Contratos recentes
     recent_contracts = contract_repo.get_recent_contracts(limit // 2)
-    
+
     activities = []
-    
+
     # Adicionar pagamentos
     for payment in recent_payments:
-        activities.append({
-            "type": "payment",
-            "description": f"Pagamento de R$ {payment.amount:.2f} confirmado",
-            "date": payment.payment_date or payment.due_date,
-            "related_id": payment.id
-        })
-    
+        activities.append(
+            {
+                "type": "payment",
+                "description": f"Pagamento de R$ {payment.amount:.2f} confirmado",
+                "date": payment.payment_date or payment.due_date,
+                "related_id": payment.id,
+            }
+        )
+
     # Adicionar contratos
     for contract in recent_contracts:
-        activities.append({
-            "type": "contract",
-            "description": f"Novo contrato criado - {contract.unit.property.name}",
-            "date": contract.start_date,
-            "related_id": contract.id
-        })
-    
+        activities.append(
+            {
+                "type": "contract",
+                "description": f"Novo contrato criado - {contract.unit.property.name}",
+                "date": contract.start_date,
+                "related_id": contract.id,
+            }
+        )
+
     # Ordenar por data
     activities.sort(key=lambda x: x["date"], reverse=True)
-    
-    return {"activities": activities[:limit]}
 
+    return {"activities": activities[:limit]}

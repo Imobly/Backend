@@ -1,12 +1,14 @@
-from sqlalchemy import Column, Integer, String, DateTime, Date, Text, JSON, Boolean
-from sqlalchemy.orm import relationship
-from app.db.base import Base
 from datetime import datetime
+
+from sqlalchemy import JSON, Column, Date, DateTime, Integer, String
+from sqlalchemy.orm import relationship
+
+from app.db.base import Base
 
 
 class Tenant(Base):
     __tablename__ = "tenants"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
     email = Column(String(255), unique=True, nullable=False)
@@ -19,7 +21,7 @@ class Tenant(Base):
     status = Column(String(20), default="active")  # 'active', 'inactive'
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relacionamentos
     contracts = relationship("Contract", back_populates="tenant")
     payments = relationship("Payment", back_populates="tenant")

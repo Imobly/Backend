@@ -1,10 +1,14 @@
-from pydantic import BaseModel, Field, validator
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class NotificationBase(BaseModel):
-    type: str = Field(..., pattern="^(contract_expiring|payment_overdue|maintenance_urgent|system_alert|reminder)$")
+    type: str = Field(
+        ...,
+        pattern="^(contract_expiring|payment_overdue|maintenance_urgent|system_alert|reminder)$",
+    )
     title: str = Field(..., min_length=1, max_length=255)
     message: str = Field(..., min_length=1)
     date: datetime
@@ -20,7 +24,10 @@ class NotificationCreate(NotificationBase):
 
 
 class NotificationUpdate(BaseModel):
-    type: Optional[str] = Field(None, pattern="^(contract_expiring|payment_overdue|maintenance_urgent|system_alert|reminder)$")
+    type: Optional[str] = Field(
+        None,
+        pattern="^(contract_expiring|payment_overdue|maintenance_urgent|system_alert|reminder)$",
+    )
     title: Optional[str] = Field(None, min_length=1, max_length=255)
     message: Optional[str] = None
     date: Optional[datetime] = None
@@ -35,7 +42,7 @@ class NotificationResponse(NotificationBase):
     id: str
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 

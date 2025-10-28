@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field, validator
-from typing import Optional
-from datetime import datetime, date as date_type
+from datetime import date as date_type
+from datetime import datetime
 from decimal import Decimal
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class ExpenseBase(BaseModel):
@@ -39,7 +41,7 @@ class ExpenseResponse(ExpenseBase):
     id: str
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 

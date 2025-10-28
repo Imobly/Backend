@@ -1,13 +1,15 @@
-from sqlalchemy import Column, Integer, String, DateTime, Date, Text, ForeignKey, Numeric
-from sqlalchemy.orm import relationship
-from app.db.base import Base
-from datetime import datetime
 import uuid
+from datetime import datetime
+
+from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy.orm import relationship
+
+from app.db.base import Base
 
 
 class Expense(Base):
     __tablename__ = "expenses"
-    
+
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     type = Column(String(20), nullable=False)  # 'expense', 'maintenance'
     category = Column(String(100), nullable=False)
@@ -22,6 +24,6 @@ class Expense(Base):
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relacionamentos
     property = relationship("Property", back_populates="expenses")

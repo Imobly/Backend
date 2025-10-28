@@ -1,7 +1,7 @@
-from pydantic import BaseModel, Field, EmailStr, validator
-from typing import Optional, List, Dict, Any
-from datetime import datetime, date
-from decimal import Decimal
+from datetime import date, datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, EmailStr, Field
 
 
 class EmergencyContact(BaseModel):
@@ -49,7 +49,7 @@ class TenantResponse(TenantBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
@@ -65,5 +65,6 @@ class TenantFilter(BaseModel):
     cpf_cnpj: Optional[str] = None
     status: Optional[str] = None
     profession: Optional[str] = None
+
 
 # Tenant já definido como TenantResponse acima

@@ -1,12 +1,14 @@
-from sqlalchemy import Column, Integer, String, DateTime, Date, Text, ForeignKey, Numeric
-from sqlalchemy.orm import relationship
-from app.db.base import Base
 from datetime import datetime
+
+from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy.orm import relationship
+
+from app.db.base import Base
 
 
 class Payment(Base):
     __tablename__ = "payments"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     property_id = Column(Integer, ForeignKey("properties.id"), nullable=False)
     tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
@@ -21,7 +23,7 @@ class Payment(Base):
     description = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relacionamentos
     property = relationship("Property", back_populates="payments")
     tenant = relationship("Tenant", back_populates="payments")

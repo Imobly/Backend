@@ -37,8 +37,35 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
+
+  # Uncomment to run tests on startup (optional)
+  # test-runner:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.test
+  #   container_name: imovel_test_runner
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   environment:
+  #     - DATABASE_URL=postgresql://postgres:admin123@postgres:5432/imovel_gestao_test
+  #     - PYTHONPATH=/app
+  #   volumes:
+  #     - ./htmlcov:/app/htmlcov
+  #   networks:
+  #     - app-network
+  #   command: >
+  #     sh -c "
+  #       pytest -v --cov=app --cov-report=html --cov-report=term-missing &&
+  #       echo '✅ All tests passed!'
+  #     "
 
 volumes:
   postgres_data:

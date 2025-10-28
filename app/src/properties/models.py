@@ -1,11 +1,14 @@
-from sqlalchemy import Column, Integer, String, DateTime, Date, Text, ForeignKey, Numeric, Boolean, JSON
-from sqlalchemy.orm import relationship
-from app.db.base import Base
 from datetime import datetime
+
+from sqlalchemy import JSON, Boolean, Column, DateTime, Integer, Numeric, String, Text
+from sqlalchemy.orm import relationship
+
+from app.db.base import Base
+
 
 class Property(Base):
     __tablename__ = "properties"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
     address = Column(Text, nullable=False)
@@ -26,10 +29,10 @@ class Property(Base):
     tenant = Column(String(255), nullable=True)  # Nome do inquilino atual
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relacionamentos
     units = relationship("Unit", back_populates="property", cascade="all, delete-orphan")
     contracts = relationship("Contract", back_populates="property")
     payments = relationship("Payment", back_populates="property")
     expenses = relationship("Expense", back_populates="property")
-    # maintenances = relationship("Maintenance", back_populates="property")  
+    # maintenances = relationship("Maintenance", back_populates="property")

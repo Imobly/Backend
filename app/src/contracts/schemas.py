@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field, validator
-from typing import Optional
-from datetime import datetime, date
+from datetime import date, datetime
 from decimal import Decimal
+from typing import Optional
+
+from pydantic import BaseModel, Field, validator
 
 
 class ContractBase(BaseModel):
@@ -17,10 +18,10 @@ class ContractBase(BaseModel):
     status: str = Field("active", pattern="^(active|expired|terminated)$")
     document_url: Optional[str] = None
 
-    @validator('end_date')
+    @validator("end_date")
     def validate_end_date(cls, v, values):
-        if 'start_date' in values and v <= values['start_date']:
-            raise ValueError('End date must be after start date')
+        if "start_date" in values and v <= values["start_date"]:
+            raise ValueError("End date must be after start date")
         return v
 
 
@@ -44,7 +45,7 @@ class ContractResponse(ContractBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
