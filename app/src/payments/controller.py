@@ -49,6 +49,11 @@ class payment_controller:
 
     def create_payment(self, db: Session, payment_data: PaymentCreate) -> PaymentResponse:
         """Criar novo pagamento"""
+        # Validar se o contrato existe
+        contract = self.contract_repository.get(db, payment_data.contract_id)
+        if not contract:
+            raise HTTPException(status_code=404, detail="Contrato não encontrado")
+        
         return self.repository.create(db, obj_in=payment_data)
 
     def create_bulk_payments(
