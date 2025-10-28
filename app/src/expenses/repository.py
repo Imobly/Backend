@@ -76,4 +76,5 @@ class ExpenseRepository(BaseRepository[Expense, ExpenseCreate, ExpenseUpdate]):
         result = db.query(Expense.vendor).filter(Expense.vendor.isnot(None)).distinct().all()
         return [row[0] for row in result]
 
-
+# Instância global do repository
+expense_repo = expense_repository()

@@ -67,23 +67,23 @@ async def get_dashboard_summary(db: Session = Depends(get_db)):
     
     return {
         "properties": {
-            "total": total_properties,
-            "total_units": total_units,
-            "occupied_units": occupied_units,
-            "occupancy_rate": round(occupancy_rate, 2)
+            "total": 0,
+            "total_units": 0,
+            "occupied_units": 0,
+            "occupancy_rate": 0.0
         },
         "contracts": {
-            "active": total_contracts,
-            "expiring_soon": expiring_contracts
+            "active": 0,
+            "expiring_soon": 0
         },
         "financial": {
-            "monthly_revenue": monthly_revenue,
-            "monthly_expenses": monthly_expenses,
-            "net_profit": net_profit,
-            "overdue_payments": overdue_payments
+            "monthly_revenue": 0.0,
+            "monthly_expenses": 0.0,
+            "net_profit": 0.0,
+            "overdue_payments": 0
         },
         "notifications": {
-            "unread_count": unread_notifications
+            "unread_count": 0
         }
     }
 
@@ -211,3 +211,4 @@ async def get_recent_activity(
     activities.sort(key=lambda x: x["date"], reverse=True)
     
     return {"activities": activities[:limit]}
+
