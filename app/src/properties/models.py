@@ -10,6 +10,7 @@ class Property(Base):
     __tablename__ = "properties"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False, index=True)  # Reference to user in auth-api
     name = Column(String(255), nullable=False)
     address = Column(Text, nullable=False)
     neighborhood = Column(String(100), nullable=False)

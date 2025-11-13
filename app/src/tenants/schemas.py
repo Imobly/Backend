@@ -33,6 +33,11 @@ class TenantCreate(TenantBase):
     pass
 
 
+class TenantCreateInternal(TenantBase):
+    """Schema interno para criação com user_id"""
+    user_id: int
+
+
 class TenantUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     email: Optional[EmailStr] = None

@@ -10,6 +10,7 @@ class Unit(Base):
     __tablename__ = "units"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False, index=True)  # Reference to user in auth-api
     property_id = Column(Integer, ForeignKey("properties.id"), nullable=False)
     number = Column(String(50), nullable=False)
     area = Column(Numeric(10, 2), nullable=False)

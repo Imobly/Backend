@@ -3,6 +3,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.core.dependencies import get_current_user_id_from_token
 from app.db.session import get_db
 
 from .controller import property_controller
@@ -21,11 +22,13 @@ def get_properties(
     max_rent: Optional[float] = Query(None, ge=0, description="Valor máximo do aluguel"),
     min_area: Optional[float] = Query(None, ge=0, description="Área mínima"),
     max_area: Optional[float] = Query(None, ge=0, description="Área máxima"),
+    user_id: int = Depends(get_current_user_id_from_token),
     db: Session = Depends(get_db),
 ):
     """Listar propriedades com filtros opcionais"""
     properties = property_controller(db).get_properties(
         db=db,
+        user_id=user_id,
         skip=skip,
         limit=limit,
         property_type=property_type,
@@ -39,31 +42,47 @@ def get_properties(
 
 
 @router.get("/available", response_model=List[PropertyResponse])
-def get_available_properties(db: Session = Depends(get_db)):
+def get_available_properties(
+    user_id: int = Depends(get_current_user_id_from_token),
+    db: Session = Depends(get_db)
+):
     """Listar apenas propriedades disponíveis"""
-    properties = property_controller(db).get_available_properties(db)
+    properties = property_controller(db).get_available_properties(db, user_id)
     return properties
 
 
 @router.post("/", response_model=PropertyResponse, status_code=201)
-def create_property(property: PropertyCreate, db: Session = Depends(get_db)):
+def create_property(
+    property: PropertyCreate,
+    user_id: int = Depends(get_current_user_id_from_token),
+    db: Session = Depends(get_db)
+):
     """Criar nova propriedade"""
-    new_property = property_controller(db).create_property(db=db, property_data=property)
+    new_property = property_controller(db).create_property(db=db, user_id=user_id, property_data=property)
     return new_property
 
 
 @router.get("/{property_id}", response_model=PropertyResponse)
-def get_property(property_id: int, db: Session = Depends(get_db)):
+def get_property(
+    property_id: int,
+    user_id: int = Depends(get_current_user_id_from_token),
+    db: Session = Depends(get_db)
+):
     """Obter propriedade por ID"""
-    property_obj = property_controller(db).get_property_by_id(db, property_id=property_id)
+    property_obj = property_controller(db).get_property_by_id(db, property_id=property_id, user_id=user_id)
     return property_obj
 
 
 @router.put("/{property_id}", response_model=PropertyResponse)
-def update_property(property_id: int, property: PropertyUpdate, db: Session = Depends(get_db)):
+def update_property(
+    property_id: int,
+    property: PropertyUpdate,
+    user_id: int = Depends(get_current_user_id_from_token),
+    db: Session = Depends(get_db)
+):
     """Atualizar propriedade"""
     updated_property = property_controller(db).update_property(
-        db, property_id=property_id, property_data=property
+        db, property_id=property_id, user_id=user_id, property_data=property
     )
     return updated_property
 
@@ -72,17 +91,22 @@ def update_property(property_id: int, property: PropertyUpdate, db: Session = De
 def update_property_status(
     property_id: int,
     status: str = Query(..., description="Novo status da propriedade"),
+    user_id: int = Depends(get_current_user_id_from_token),
     db: Session = Depends(get_db),
 ):
     """Atualizar apenas o status da propriedade"""
     updated_property = property_controller(db).update_property_status(
-        db, property_id=property_id, status=status
+        db, property_id=property_id, user_id=user_id, status=status
     )
     return updated_property
 
 
 @router.delete("/{property_id}")
-def delete_property(property_id: int, db: Session = Depends(get_db)):
+def delete_property(
+    property_id: int,
+    user_id: int = Depends(get_current_user_id_from_token),
+    db: Session = Depends(get_db)
+):
     """Deletar propriedade"""
-    property_controller(db).delete_property(db, property_id=property_id)
+    property_controller(db).delete_property(db, property_id=property_id, user_id=user_id)
     return {"message": "Propriedade deletada com sucesso"}

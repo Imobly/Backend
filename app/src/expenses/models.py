@@ -11,6 +11,7 @@ class Expense(Base):
     __tablename__ = "expenses"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(Integer, nullable=False, index=True)  # Reference to user in auth-api
     type = Column(String(20), nullable=False)  # 'expense', 'maintenance'
     category = Column(String(100), nullable=False)
     description = Column(Text, nullable=False)

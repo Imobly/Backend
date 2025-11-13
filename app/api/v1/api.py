@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.src.auth.router import router as auth_router
+# NOTA: auth_router removido - autenticação gerenciada pelo Auth-api separado
 from app.src.contracts.router import router as contracts_router
 from app.src.dashboard.router import router as dashboard_router
 from app.src.expenses.router import router as expenses_router
@@ -14,8 +14,7 @@ from app.src.units.router import router as units_router
 
 api_router = APIRouter()
 
-# Incluir router de autenticação (público)
-api_router.include_router(auth_router)
+# NOTA: Router de autenticação removido - use Auth-api em localhost:5433
 
 # Incluir todos os routers com seus prefixos e tags
 api_router.include_router(properties_router, prefix="/properties", tags=["properties"])

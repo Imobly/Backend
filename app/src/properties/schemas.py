@@ -29,6 +29,11 @@ class PropertyCreate(PropertyBase):
     pass
 
 
+class PropertyCreateInternal(PropertyBase):
+    """Schema interno para criação com user_id"""
+    user_id: int
+
+
 class PropertyUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     address: Optional[str] = None
