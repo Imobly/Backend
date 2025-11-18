@@ -29,6 +29,11 @@ class ContractCreate(ContractBase):
     pass
 
 
+class ContractCreateInternal(ContractBase):
+    """Schema interno para criação com user_id"""
+    user_id: int
+
+
 class ContractUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=255)
     start_date: Optional[date] = None
