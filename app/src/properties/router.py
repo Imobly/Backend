@@ -1,9 +1,10 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user_id_from_token
+from app.core.upload_service import upload_service
 from app.db.session import get_db
 
 from .controller import property_controller
@@ -110,3 +111,95 @@ def delete_property(
     """Deletar propriedade"""
     property_controller(db).delete_property(db, property_id=property_id, user_id=user_id)
     return {"message": "Propriedade deletada com sucesso"}
+
+
+# ==================== UPLOAD ENDPOINTS ====================
+
+@router.post("/{property_id}/upload-images", status_code=status.HTTP_201_CREATED)
+async def upload_property_images(
+    property_id: int,
+    files: List[UploadFile] = File(..., description="Imagens da propriedade (max 10 arquivos)"),
+    user_id: int = Depends(get_current_user_id_from_token),
+    db: Session = Depends(get_db),
+):
+    """
+    Upload de múltiplas imagens para uma propriedade
+    
+    - Aceita até 10 imagens por requisição
+    - Formatos permitidos: JPG, JPEG, PNG, GIF, WEBP
+    - Tamanho máximo por arquivo: 10MB
+    """
+    # Verificar se a propriedade existe e pertence ao usuário
+    property_obj = property_controller(db).get_property_by_id(db, property_id, user_id)
+    
+    # Salvar arquivos
+    uploaded_files = await upload_service.save_multiple_files(
+        files=files,
+        folder=f"properties/{property_id}",
+        allowed_types="image",
+        max_files=10
+    )
+    
+    # Extrair apenas as URLs dos arquivos
+    new_image_urls = [file_info["url"] for file_info in uploaded_files]
+    
+    # Atualizar propriedade com novas imagens
+    current_images = property_obj.images or []
+    updated_images = current_images + new_image_urls
+    
+    property_controller(db).update_property(
+        db,
+        property_id=property_id,
+        user_id=user_id,
+        property_data=PropertyUpdate(images=updated_images)
+    )
+    
+    return {
+        "message": f"{len(uploaded_files)} imagens enviadas com sucesso",
+        "uploaded_files": uploaded_files,
+        "total_images": len(updated_images)
+    }
+
+
+@router.delete("/{property_id}/images")
+async def delete_property_image(
+    property_id: int,
+    image_url: str = Query(..., description="URL da imagem a ser deletada"),
+    user_id: int = Depends(get_current_user_id_from_token),
+    db: Session = Depends(get_db),
+):
+    """
+    Deletar uma imagem específica da propriedade
+    
+    - Remove o arquivo do servidor
+    - Atualiza o array de imagens no banco de dados
+    """
+    # Verificar se a propriedade existe e pertence ao usuário
+    property_obj = property_controller(db).get_property_by_id(db, property_id, user_id)
+    
+    # Verificar se a imagem existe no array
+    current_images = property_obj.images or []
+    if image_url not in current_images:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Imagem não encontrada na propriedade"
+        )
+    
+    # Deletar arquivo físico
+    deleted = upload_service.delete_file(image_url)
+    
+    # Remover URL do array
+    updated_images = [img for img in current_images if img != image_url]
+    
+    property_controller(db).update_property(
+        db,
+        property_id=property_id,
+        user_id=user_id,
+        property_data=PropertyUpdate(images=updated_images)
+    )
+    
+    return {
+        "message": "Imagem deletada com sucesso",
+        "file_deleted": deleted,
+        "remaining_images": len(updated_images)
+    }

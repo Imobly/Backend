@@ -1,9 +1,20 @@
 from datetime import date as date_type
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
+
+
+class ExpenseDocument(BaseModel):
+    """Schema para documento/comprovante de despesa"""
+    id: str
+    name: str
+    type: str  # 'comprovante', 'nota_fiscal', 'recibo', 'outros'
+    url: str
+    file_type: str  # 'pdf', 'jpg', 'png', etc
+    size: int
+    uploaded_at: str
 
 
 class ExpenseBase(BaseModel):
@@ -16,8 +27,9 @@ class ExpenseBase(BaseModel):
     status: str = Field(..., pattern="^(pending|paid|scheduled)$")
     priority: Optional[str] = Field(None, pattern="^(low|medium|high|urgent)$")
     vendor: Optional[str] = Field(None, max_length=255)
-    receipt: Optional[str] = None  # URL do comprovante
-    notes: Optional[str] = None
+    number: Optional[str] = Field(None, max_length=20, description="Telefone/contato do fornecedor")
+    receipt: Optional[str] = None  # DEPRECATED - usar documents
+    documents: Optional[List[Dict[str, Any]]] = Field(default_factory=list)  # Array de documentos
 
 
 class ExpenseCreate(ExpenseBase):
@@ -33,8 +45,9 @@ class ExpenseUpdate(BaseModel):
     status: Optional[str] = Field(None, pattern="^(pending|paid|scheduled)$")
     priority: Optional[str] = Field(None, pattern="^(low|medium|high|urgent)$")
     vendor: Optional[str] = Field(None, max_length=255)
-    receipt: Optional[str] = None
-    notes: Optional[str] = None
+    number: Optional[str] = Field(None, max_length=20, description="Telefone/contato do fornecedor")
+    receipt: Optional[str] = None  # DEPRECATED
+    documents: Optional[List[Dict[str, Any]]] = None
 
 
 class ExpenseResponse(ExpenseBase):
@@ -69,4 +82,4 @@ class ExpenseFilter(BaseModel):
 # Schema para categorias
 class ExpenseCategory(BaseModel):
     name: str
-    type: str  # expense ou maintenance
+    description: Optional[str] = None

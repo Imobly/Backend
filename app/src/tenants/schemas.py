@@ -13,7 +13,7 @@ class EmergencyContact(BaseModel):
 class TenantDocument(BaseModel):
     id: str
     name: str = Field(..., min_length=1, max_length=255)
-    type: str = Field(..., pattern="^(identity|contract|other)$")
+    type: str = Field(..., pattern="^(rg|cpf|cnh|comprovante_residencia|comprovante_renda|contrato|outros)$")
     url: str
 
 
