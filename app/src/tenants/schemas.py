@@ -26,6 +26,7 @@ class TenantBase(BaseModel):
     profession: str = Field(..., min_length=1, max_length=100)
     emergency_contact: Optional[EmergencyContact] = None
     documents: Optional[List[TenantDocument]] = []
+    contract_id: Optional[int] = None  # ID do contrato ativo
     status: str = Field("active", pattern="^(active|inactive)$")
 
 
@@ -47,6 +48,7 @@ class TenantUpdate(BaseModel):
     profession: Optional[str] = Field(None, min_length=1, max_length=100)
     emergency_contact: Optional[EmergencyContact] = None
     documents: Optional[List[TenantDocument]] = None
+    contract_id: Optional[int] = None  # ID do contrato ativo
     status: Optional[str] = Field(None, pattern="^(active|inactive)$")
 
 

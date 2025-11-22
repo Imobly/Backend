@@ -16,7 +16,6 @@ class ContractBase(BaseModel):
     interest_rate: Decimal = Field(..., ge=0)
     fine_rate: Decimal = Field(..., ge=0)
     status: str = Field("active", pattern="^(active|expired|terminated)$")
-    document_url: Optional[str] = None
 
     @validator("end_date")
     def validate_end_date(cls, v, values):
@@ -43,7 +42,6 @@ class ContractUpdate(BaseModel):
     interest_rate: Optional[Decimal] = Field(None, ge=0)
     fine_rate: Optional[Decimal] = Field(None, ge=0)
     status: Optional[str] = Field(None, pattern="^(active|expired|terminated)$")
-    document_url: Optional[str] = None
 
 
 class ContractResponse(ContractBase):
