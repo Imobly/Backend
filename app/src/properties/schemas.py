@@ -22,7 +22,7 @@ class PropertyBase(BaseModel):
     description: Optional[str] = None
     images: Optional[List[str]] = []
     is_residential: bool = True
-    tenant: Optional[str] = None
+    tenant_id: Optional[int] = None
 
 
 class PropertyCreate(PropertyBase):
@@ -51,7 +51,7 @@ class PropertyUpdate(BaseModel):
     description: Optional[str] = None
     images: Optional[List[str]] = None
     is_residential: Optional[bool] = None
-    tenant: Optional[str] = None
+    tenant_id: Optional[int] = None
 
 
 class PropertyResponse(PropertyBase):

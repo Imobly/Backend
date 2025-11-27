@@ -1,6 +1,8 @@
 """Pytest configuration and fixtures"""
 
 from typing import Generator
+import os
+import sys
 
 import pytest
 from fastapi.testclient import TestClient
@@ -14,34 +16,112 @@ from app.main import app
 from app.src.auth.repository import UserRepository
 from app.src.auth.schemas import UserCreate
 
-# Test database URL
-SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///:memory:"
+# ============ PROTEÇÃO CONTRA USO DE BANCO DE PRODUÇÃO ============
 
-# Create test engine
-engine = create_engine(
-    SQLALCHEMY_TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
+PRODUCTION_DATABASE_URL = os.getenv("DATABASE_URL")
+
+# VALIDAÇÃO 1: TEST_DATABASE_URL deve estar definido
+if not TEST_DATABASE_URL:
+    print("\n" + "="*80)
+    print("❌ ERRO: TEST_DATABASE_URL não está definido!")
+    print("="*80)
+    print("\nPara rodar os testes, você DEVE definir uma URL de banco SEPARADA.")
+    print("\nExemplos:")
+    print("  Windows PowerShell:")
+    print('    $env:TEST_DATABASE_URL="postgresql://postgres:admin123@localhost:5432/imovel_gestao_test"')
+    print("\n  Linux/Mac:")
+    print('    export TEST_DATABASE_URL="postgresql://postgres:admin123@localhost:5432/imovel_gestao_test"')
+    print("\n  Docker Compose:")
+    print('    docker compose exec backend sh -c "TEST_DATABASE_URL=postgresql://postgres:admin123@postgres:5432/imovel_gestao_test pytest"')
+    print("\n" + "="*80)
+    sys.exit(1)
+
+# VALIDAÇÃO 2: TEST_DATABASE_URL deve ser diferente de DATABASE_URL
+if PRODUCTION_DATABASE_URL and TEST_DATABASE_URL == PRODUCTION_DATABASE_URL:
+    print("\n" + "="*80)
+    print("❌ ERRO: TEST_DATABASE_URL é igual a DATABASE_URL (produção)!")
+    print("="*80)
+    print("\nVocê está tentando rodar testes no BANCO DE PRODUÇÃO.")
+    print("Isso pode APAGAR TODOS OS SEUS DADOS!")
+    print("\nUse um banco diferente para testes.")
+    print(f"\n  Produção: {PRODUCTION_DATABASE_URL}")
+    print(f"  Testes:   {TEST_DATABASE_URL}")
+    print("\n" + "="*80)
+    sys.exit(1)
+
+# VALIDAÇÃO 3: Se for Postgres, garantir que o nome do banco termina com '_test'
+if TEST_DATABASE_URL.startswith("postgresql"):
+    if not ("_test" in TEST_DATABASE_URL or ":memory:" in TEST_DATABASE_URL):
+        print("\n" + "="*80)
+        print("⚠️  AVISO: O nome do banco de testes deve conter '_test'")
+        print("="*80)
+        print(f"\n  URL atual: {TEST_DATABASE_URL}")
+        print("\n  Recomendado: postgresql://user:pass@host:port/imovel_gestao_test")
+        print("\n" + "="*80)
+        response = input("\nContinuar mesmo assim? (digite 'SIM' para confirmar): ")
+        if response != "SIM":
+            sys.exit(1)
+
+print(f"\n✅ Testes rodando em: {TEST_DATABASE_URL}\n")
+
+if TEST_DATABASE_URL.startswith("sqlite"):
+    # SQLite in-memory (uso local) – atenção: tipos específicos (JSONB) não são suportados
+    engine = create_engine(
+        TEST_DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+else:
+    # Postgres (CI/CD)
+    engine = create_engine(TEST_DATABASE_URL)
 
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 @pytest.fixture(scope="function")
 def db() -> Generator[Session, None, None]:
-    """Create a fresh database for each test"""
+    """Create a fresh database for each test in isolated schema"""
+    from sqlalchemy import text
+    
+    # Para Postgres, usar schema isolado 'test_schema'
+    if TEST_DATABASE_URL.startswith("postgresql"):
+        with engine.connect() as conn:
+            # Criar schema de teste isolado
+            conn.execute(text("DROP SCHEMA IF EXISTS test_schema CASCADE"))
+            conn.execute(text("CREATE SCHEMA test_schema"))
+            conn.execute(text("SET search_path TO test_schema"))
+            conn.commit()
+    
+    # Criar todas as tabelas
     Base.metadata.create_all(bind=engine)
+    
     db = TestingSessionLocal()
+    
+    # Para Postgres, configurar o search_path na sessão
+    if TEST_DATABASE_URL.startswith("postgresql"):
+        db.execute(text("SET search_path TO test_schema"))
+        db.commit()
+    
     try:
         yield db
     finally:
         db.close()
-        Base.metadata.drop_all(bind=engine)
+        # Cleanup: Drop schema de teste
+        with engine.connect() as conn:
+            if TEST_DATABASE_URL.startswith("postgresql"):
+                # Postgres: drop APENAS o schema de teste
+                conn.execute(text("DROP SCHEMA IF EXISTS test_schema CASCADE"))
+                conn.commit()
+            else:
+                # SQLite: regular drop_all
+                Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture(scope="function")
 def client(db: Session) -> Generator[TestClient, None, None]:
-    """Create a test client with the test database"""
+    """Create a test client with the test database and mocked auth"""
+    from app.core.dependencies import get_current_user_id_from_token
 
     def override_get_db():
         try:
@@ -49,7 +129,12 @@ def client(db: Session) -> Generator[TestClient, None, None]:
         finally:
             pass
 
+    def override_get_current_user():
+        """Mock user_id for tests - simulates authenticated user"""
+        return 1  # Default test user_id
+
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user_id_from_token] = override_get_current_user
 
     with TestClient(app) as test_client:
         yield test_client
@@ -149,10 +234,11 @@ def sample_expense_data():
 
     return {
         "property_id": 1,
+        "type": "expense",
         "description": "Test Expense",
         "amount": 250.00,
         "category": "maintenance",
-        "due_date": date(2025, 1, 10),
+        "date": date(2025, 1, 10),
         "status": "pending",
     }
 

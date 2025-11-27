@@ -19,7 +19,7 @@ class Tenant(Base):
     profession = Column(String(100), nullable=False)
     emergency_contact = Column(JSON)  # {name, phone, relationship}
     documents = Column(JSON)  # Array de documentos {id, name, type, url}
-    contract_id = Column(Integer, ForeignKey("contracts.id"), nullable=True)  # Contrato ativo
+    contract_id = Column(Integer, ForeignKey("contracts.id", name="fk_tenant_contract_id", use_alter=True), nullable=True)  # Contrato ativo
     status = Column(String(20), default="active")  # 'active', 'inactive'
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
