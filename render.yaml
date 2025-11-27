@@ -11,15 +11,13 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.0
       - key: DATABASE_URL
-        value: postgresql://postgres.yyeldattafklyutbbnhu:[YOUR_PASSWORD]@aws-0-us-west-2.pooler.supabase.com:5432/postgres
+        value: postgresql://postgres.yyeldattafklyutbbnhu:Imobly.1501@aws-0-us-west-2.pooler.supabase.com:5432/postgres
       - key: SECRET_KEY
-        generateValue: true
+        value: Rys8_HKBXH9stpwcJC6GcT_SSbXxP_a1MdcggPjKUz4
       - key: ALGORITHM
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: 30
-      - key: CORS_ORIGINS
-        value: https://seu-frontend.com,http://localhost:3000
       - key: ENVIRONMENT
         value: production
       - key: DEBUG
@@ -36,9 +34,3 @@ services:
         value: /tmp/uploads
 
 # Database hospedado no Supabase - não precisa criar no Render
-# databases:
-#   - name: imobly-db
-#     databaseName: imovel_gestao
-#     user: imovel_user
-#     plan: free
-#     region: oregon
