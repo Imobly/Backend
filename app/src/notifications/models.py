@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
 
 from app.db.base import Base
 
@@ -10,6 +10,7 @@ class Notification(Base):
     __tablename__ = "notifications"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(Integer, nullable=False, index=True)  # Reference to user in auth-api
     type = Column(
         String(50), nullable=False
     )  # 'contract_expiring', 'payment_overdue', 'maintenance_urgent', 'system_alert', 'reminder'

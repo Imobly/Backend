@@ -47,20 +47,20 @@ jobs:
         pip install -r requirements-dev.txt
     
     - name: Run Black
-      run: black --check app tests
+      run: black --check app tests --line-length 100
     
     - name: Run isort
-      run: isort --check app tests
+      run: isort --check app tests --profile black --line-length 100
     
     - name: Run Flake8
-      run: flake8 app tests
+      run: flake8 app tests --max-line-length 100 --extend-ignore=E203,W503
     
     - name: Run MyPy
-      run: mypy app
+      run: mypy app --ignore-missing-imports
     
     - name: Run Tests
       env:
-        DATABASE_URL: postgresql://postgres:admin123@localhost:5432/imovel_gestao_test
+        TEST_DATABASE_URL: postgresql://postgres:admin123@localhost:5432/imovel_gestao_test
       run: |
         pytest -v --cov=app --cov-report=xml --cov-report=term-missing
     

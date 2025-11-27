@@ -13,6 +13,9 @@ services:
     environment:
       - DEBUG=true
       - DATABASE_URL=postgresql://postgres:admin123@postgres:5432/imovel_gestao
+      - SECRET_KEY=dev-secret
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
     volumes:
       - .:/app
       - ./uploads:/app/uploads
@@ -45,6 +48,28 @@ services:
     networks:
       - app-network
 
+  # Banco de dados PostgreSQL para TESTES (separado!)
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: imovel_postgres_test
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: imovel_gestao_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5434:5432"  # Porta diferente (5434) para não conflitar
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
   # Uncomment to run tests on startup (optional)
   # test-runner:
   #   build:
@@ -69,6 +94,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  postgres_test_data:
     driver: local
 
 networks:

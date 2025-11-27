@@ -71,6 +71,23 @@ instance/
 # Sphinx documentation
 docs/_build/
 
+# Local environment
+.env
+.env.*
+
+# Coverage reports
+htmlcov/
+coverage.xml
+
+# Logs and uploads (do not version runtime data)
+logs/**
+!logs/.gitkeep
+uploads/**
+!uploads/.gitkeep
+
+# Manual test scripts (keep in scripts/ directory but do not track)
+scripts/test_*.ps1
+
 # PyBuilder
 target/
 

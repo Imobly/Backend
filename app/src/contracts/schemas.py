@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, validator
 
 
 class ContractBase(BaseModel):
+    user_id: Optional[int] = None  # Optional for backwards compatibility, set from token in API
     title: str = Field(..., min_length=1, max_length=255)
     property_id: int
     tenant_id: int
@@ -16,7 +17,6 @@ class ContractBase(BaseModel):
     interest_rate: Decimal = Field(..., ge=0)
     fine_rate: Decimal = Field(..., ge=0)
     status: str = Field("active", pattern="^(active|expired|terminated)$")
-    document_url: Optional[str] = None
 
     @validator("end_date")
     def validate_end_date(cls, v, values):
@@ -29,6 +29,12 @@ class ContractCreate(ContractBase):
     pass
 
 
+class ContractCreateInternal(ContractBase):
+    """Schema interno para criação com user_id"""
+
+    user_id: int
+
+
 class ContractUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=255)
     start_date: Optional[date] = None
@@ -38,7 +44,6 @@ class ContractUpdate(BaseModel):
     interest_rate: Optional[Decimal] = Field(None, ge=0)
     fine_rate: Optional[Decimal] = Field(None, ge=0)
     status: Optional[str] = Field(None, pattern="^(active|expired|terminated)$")
-    document_url: Optional[str] = None
 
 
 class ContractResponse(ContractBase):

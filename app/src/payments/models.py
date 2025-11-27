@@ -10,6 +10,7 @@ class Payment(Base):
     __tablename__ = "payments"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False, index=True)  # Reference to user in auth-api
     property_id = Column(Integer, ForeignKey("properties.id"), nullable=False)
     tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
     contract_id = Column(Integer, ForeignKey("contracts.id"), nullable=False)

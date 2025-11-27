@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class PropertyBase(BaseModel):
+    user_id: Optional[int] = None  # Optional for backwards compatibility, set from token in API
     name: str = Field(..., min_length=1, max_length=255)
     address: str = Field(..., min_length=1)
     neighborhood: str = Field(..., min_length=1, max_length=100)
@@ -22,11 +23,17 @@ class PropertyBase(BaseModel):
     description: Optional[str] = None
     images: Optional[List[str]] = []
     is_residential: bool = True
-    tenant: Optional[str] = None
+    tenant_id: Optional[int] = None
 
 
 class PropertyCreate(PropertyBase):
     pass
+
+
+class PropertyCreateInternal(PropertyBase):
+    """Schema interno para criação com user_id"""
+
+    user_id: int
 
 
 class PropertyUpdate(BaseModel):
@@ -46,7 +53,7 @@ class PropertyUpdate(BaseModel):
     description: Optional[str] = None
     images: Optional[List[str]] = None
     is_residential: Optional[bool] = None
-    tenant: Optional[str] = None
+    tenant_id: Optional[int] = None
 
 
 class PropertyResponse(PropertyBase):

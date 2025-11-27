@@ -17,6 +17,7 @@ class property_controller:
     def get_properties(
         self,
         db: Session,
+        user_id: int,
         skip: int = 0,
         limit: int = 100,
         property_type: Optional[str] = None,
@@ -32,6 +33,7 @@ class property_controller:
         if any([property_type, status, min_rent, max_rent, min_area, max_area]):
             return self.repository.search_properties(
                 db=db,
+                user_id=user_id,
                 property_type=property_type,
                 status=status,
                 min_rent=min_rent,
@@ -43,42 +45,57 @@ class property_controller:
             )
 
         # Caso contrário, usar listagem padrão
-        return self.repository.get_multi(db, skip=skip, limit=limit)
+        return self.repository.get_by_user(db, user_id=user_id, skip=skip, limit=limit)
 
-    def get_property_by_id(self, db: Session, property_id: int) -> PropertyResponse:
+    def get_property_by_id(self, db: Session, property_id: int, user_id: int) -> PropertyResponse:
         """Obter propriedade por ID"""
-        property_obj = self.repository.get(db, property_id)
+        property_obj = self.repository.get_by_id_and_user(db, property_id, user_id)
         if not property_obj:
             raise HTTPException(status_code=404, detail="Imóvel não encontrado")
         return property_obj
 
-    def create_property(self, db: Session, property_data: PropertyCreate) -> PropertyResponse:
+    def create_property(
+        self, db: Session, user_id: int, property_data: PropertyCreate
+    ) -> PropertyResponse:
         """Criar nova propriedade"""
-        return self.repository.create(db, obj_in=property_data)
+        # Adiciona user_id ao objeto Pydantic
+        property_dict = property_data.model_dump()
+        property_dict["user_id"] = user_id
+
+        # Cria um novo objeto Pydantic com user_id incluído
+        from app.src.properties.schemas import PropertyCreateInternal
+
+        property_with_user = PropertyCreateInternal(**property_dict)
+
+        return self.repository.create(db, obj_in=property_with_user)
 
     def update_property(
-        self, db: Session, property_id: int, property_data: PropertyUpdate
+        self, db: Session, property_id: int, user_id: int, property_data: PropertyUpdate
     ) -> PropertyResponse:
         """Atualizar propriedade existente"""
-        property_obj = self.repository.get(db, property_id)
+        property_obj = self.repository.get_by_id_and_user(db, property_id, user_id)
         if not property_obj:
             raise HTTPException(status_code=404, detail="Imóvel não encontrado")
 
         return self.repository.update(db, db_obj=property_obj, obj_in=property_data)
 
-    def delete_property(self, db: Session, property_id: int) -> dict:
+    def delete_property(self, db: Session, property_id: int, user_id: int) -> dict:
         """Deletar propriedade"""
+        property_obj = self.repository.get_by_id_and_user(db, property_id, user_id)
+        if not property_obj:
+            raise HTTPException(status_code=404, detail="Imóvel não encontrado")
+
         success = self.repository.delete(db, id=property_id)
         if not success:
             raise HTTPException(status_code=404, detail="Imóvel não encontrado")
         return {"message": "Imóvel deletado com sucesso"}
 
-    def get_available_properties(self, db: Session) -> List[PropertyResponse]:
+    def get_available_properties(self, db: Session, user_id: int) -> List[PropertyResponse]:
         """Obter apenas propriedades disponíveis"""
-        return self.repository.get_available_properties(db)
+        return self.repository.get_available_properties(db, user_id)
 
     def update_property_status(
-        self, db: Session, property_id: int, status: str
+        self, db: Session, property_id: int, user_id: int, status: str
     ) -> PropertyResponse:
         """Atualizar apenas o status da propriedade"""
         valid_statuses = ["vacant", "occupied", "maintenance", "inactive"]
@@ -87,7 +104,7 @@ class property_controller:
                 status_code=400, detail=f"Status inválido. Use: {', '.join(valid_statuses)}"
             )
 
-        property_obj = self.repository.update_status(db, property_id, status)
+        property_obj = self.repository.update_status(db, property_id, user_id, status)
         if not property_obj:
             raise HTTPException(status_code=404, detail="Imóvel não encontrado")
         return property_obj

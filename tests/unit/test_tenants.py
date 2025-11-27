@@ -27,7 +27,7 @@ class TestTenantRepository:
         tenant_create = TenantCreate(**sample_tenant_data)
 
         created = repo.create(db, obj_in=tenant_create)
-        retrieved = repo.get_by_email(db, email=created.email)
+        retrieved = repo.get_by_email(db, user_id=1, email=created.email)
 
         assert retrieved is not None
         assert retrieved.id == created.id
@@ -39,7 +39,7 @@ class TestTenantRepository:
         tenant_create = TenantCreate(**sample_tenant_data)
 
         created = repo.create(db, obj_in=tenant_create)
-        retrieved = repo.get_by_cpf(db, cpf=created.cpf_cnpj)
+        retrieved = repo.get_by_cpf(db, user_id=1, cpf=created.cpf_cnpj)
 
         assert retrieved is not None
         assert retrieved.id == created.id
@@ -54,7 +54,7 @@ class TestTenantRepository:
         repo.create(db, obj_in=tenant_create)
 
         # Try to create with same email
-        errors = repo.check_unique_constraints(db, tenant_create)
+        errors = repo.check_unique_constraints(db, user_id=1, tenant_data=tenant_create)
 
         assert "email" in errors
         assert "já está em uso" in errors["email"]
@@ -72,7 +72,7 @@ class TestTenantRepository:
         data["email"] = "different@example.com"
         tenant_create_2 = TenantCreate(**data)
 
-        errors = repo.check_unique_constraints(db, tenant_create_2)
+        errors = repo.check_unique_constraints(db, user_id=1, tenant_data=tenant_create_2)
 
         assert "cpf_cnpj" in errors
         assert "já está em uso" in errors["cpf_cnpj"]
@@ -91,7 +91,7 @@ class TestTenantRepository:
             repo.create(db, obj_in=tenant_create)
 
         # Search
-        results = repo.search_tenants(db, name="Tenant 1")
+        results = repo.search_tenants(db, user_id=1, name="Tenant 1")
 
         assert len(results) >= 1
         assert "Tenant 1" in results[0].name

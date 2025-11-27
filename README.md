@@ -94,12 +94,49 @@ Para adicionar novas URLs, modifique a configuração em `app/core/config.py` ou
 ## 🗄️ Banco de Dados
 
 ### Com Docker
-O docker-compose.yml já configura um PostgreSQL automático com pgAdmin.
+O docker-compose.yml configura automaticamente:
+- **postgres** (porta 5432) - Banco de PRODUÇÃO (`imovel_gestao`)
+- **postgres-test** (porta 5433) - Banco de TESTES (`imovel_gestao_test`)
 
 ### Manual
-1. Instale MySQL
-2. Crie o banco: `CREATE DATABASE imovel_gestao;`
+1. Instale PostgreSQL
+2. Crie os bancos:
+   ```sql
+   CREATE DATABASE imovel_gestao;        -- Produção
+   CREATE DATABASE imovel_gestao_test;   -- Testes
+   ```
 3. Configure a URL no .env
+
+## 🧪 Testes
+
+### ⚠️ IMPORTANTE: Segurança nos Testes
+
+Os testes **NUNCA** devem rodar no banco de produção! Veja o guia completo: [TESTING_SAFETY.md](TESTING_SAFETY.md)
+
+### Rodar Testes (Forma Segura)
+
+```powershell
+# Windows PowerShell - Script automático
+.\scripts\run_tests_safe.ps1
+
+# Ou manualmente
+$env:TEST_DATABASE_URL = "postgresql://postgres:admin123@localhost:5433/imovel_gestao_test"
+pytest tests/integration/ -v
+```
+
+### Proteções Implementadas
+
+✅ Sistema rejeita testes se `TEST_DATABASE_URL` não estiver definido  
+✅ Sistema rejeita se `TEST_DATABASE_URL` == `DATABASE_URL`  
+✅ Testes rodam em schema isolado (`test_schema`)  
+✅ Container dedicado para testes (`postgres-test`)  
+✅ Dados de produção nunca são afetados  
+
+### Cobertura de Testes
+
+- **51 testes de integração** cobrindo todos os módulos
+- **60%+ de cobertura** de código
+- Testes rodando automaticamente no GitHub Actions
 
 ## 🔄 Desenvolvimento
 

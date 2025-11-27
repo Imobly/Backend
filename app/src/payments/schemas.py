@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class PaymentBase(BaseModel):
+    user_id: Optional[int] = None  # Optional for backwards compatibility, set from token in API
     property_id: int
     tenant_id: int
     contract_id: int
@@ -16,6 +17,40 @@ class PaymentBase(BaseModel):
     total_amount: Decimal = Field(..., gt=0)
     status: str = Field(..., pattern="^(pending|paid|overdue|partial)$")
     payment_method: Optional[str] = Field(None, pattern="^(cash|transfer|pix|check|card)$")
+    description: Optional[str] = None
+
+
+class PaymentCalculateRequest(BaseModel):
+    """Schema para calcular valores de pagamento"""
+
+    contract_id: int
+    due_date: date
+    payment_date: Optional[date] = None
+    paid_amount: Optional[Decimal] = Field(None, gt=0)
+
+
+class PaymentCalculateResponse(BaseModel):
+    """Schema com valores calculados"""
+
+    base_amount: Decimal
+    fine_amount: Decimal
+    interest_amount: Decimal
+    total_addition: Decimal
+    total_expected: Decimal
+    days_overdue: int
+    status: str
+    paid_amount: Decimal
+    remaining_amount: Decimal
+
+
+class PaymentRegisterRequest(BaseModel):
+    """Schema simplificado para registrar pagamento (cálculo automático)"""
+
+    contract_id: int
+    due_date: date
+    payment_date: date
+    paid_amount: Decimal = Field(..., gt=0)
+    payment_method: str = Field(..., pattern="^(cash|transfer|pix|check|card)$")
     description: Optional[str] = None
 
 

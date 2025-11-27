@@ -20,10 +20,6 @@ class ExpenseRepository(BaseRepository[Expense, ExpenseCreate, ExpenseUpdate]):
         """Buscar despesas por propriedade"""
         return db.query(Expense).filter(Expense.property_id == property_id).all()
 
-    def get_by_type(self, db: Session, expense_type: str) -> List[Expense]:
-        """Buscar despesas por tipo"""
-        return db.query(Expense).filter(Expense.type == expense_type).all()
-
     def get_by_category(self, db: Session, category: str) -> List[Expense]:
         """Buscar despesas por categoria"""
         return db.query(Expense).filter(Expense.category == category).all()
@@ -36,12 +32,15 @@ class ExpenseRepository(BaseRepository[Expense, ExpenseCreate, ExpenseUpdate]):
         """Buscar despesas por prioridade"""
         return db.query(Expense).filter(Expense.priority == priority).all()
 
-    def get_urgent_maintenance(self, db: Session) -> List[Expense]:
-        """Buscar manutenções urgentes"""
+    def get_by_vendor(self, db: Session, vendor: str) -> List[Expense]:
+        """Buscar despesas por fornecedor"""
+        return db.query(Expense).filter(Expense.vendor == vendor).all()
+
+    def get_urgent_expenses(self, db: Session) -> List[Expense]:
+        """Buscar despesas urgentes (independente da categoria)"""
         return (
             db.query(Expense)
             .filter(
-                Expense.type == "maintenance",
                 Expense.priority == "urgent",
                 Expense.status.in_(["pending", "scheduled"]),
             )
