@@ -129,6 +129,13 @@ def client(db: Session) -> Generator[TestClient, None, None]:
     """Create a test client with the test database and mocked auth"""
     from app.core.dependencies import get_current_user_id_from_token
 
+    # Limpar os event handlers do startup para evitar create_tables no banco errado
+    app.router.on_startup = []
+    
+    # Garantir que o diretório de uploads existe (necessário para StaticFiles)
+    from app.core.config import settings
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+
     def override_get_db():
         try:
             yield db
