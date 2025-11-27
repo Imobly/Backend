@@ -129,14 +129,19 @@ class PaymentCalculationService:
 
         # Calcular multa e juros
         fine, interest, total_addition = cls.calculate_fine_and_interest(
-            base_amount, Decimal(str(contract.fine_rate)), Decimal(str(contract.interest_rate)), days_overdue
+            base_amount,
+            Decimal(str(contract.fine_rate)),
+            Decimal(str(contract.interest_rate)),
+            days_overdue,
         )
 
         # Valor total esperado
         total_expected = base_amount + total_addition
 
         # Determinar status
-        status = cls.determine_payment_status(due_date, payment_date, paid_amount, Decimal(str(total_expected)))
+        status = cls.determine_payment_status(
+            due_date, payment_date, paid_amount, Decimal(str(total_expected))
+        )
 
         return {
             "base_amount": base_amount,
@@ -148,7 +153,8 @@ class PaymentCalculationService:
             "status": status,
             "paid_amount": paid_amount if paid_amount else Decimal("0"),
             "remaining_amount": max(
-                Decimal("0"), Decimal(str(total_expected)) - (paid_amount if paid_amount else Decimal("0"))
+                Decimal("0"),
+                Decimal(str(total_expected)) - (paid_amount if paid_amount else Decimal("0")),
             ),
         }
 
@@ -293,10 +299,14 @@ class PaymentCalculationService:
 
         # Converter Column para tipos Python
         due_date_val = payment.due_date if isinstance(payment.due_date, date) else payment.due_date
-        payment_date_val = payment.payment_date if payment.payment_date is None or isinstance(payment.payment_date, date) else payment.payment_date
+        payment_date_val = (
+            payment.payment_date
+            if payment.payment_date is None or isinstance(payment.payment_date, date)
+            else payment.payment_date
+        )
         amount_val = Decimal(str(payment.amount)) if payment.payment_date else None
         total_val = Decimal(str(payment.total_amount))
-        
+
         new_status = cls.determine_payment_status(
             due_date_val,  # type: ignore[arg-type]
             payment_date_val,  # type: ignore[arg-type]
@@ -305,7 +315,7 @@ class PaymentCalculationService:
         )
 
         if payment.status != new_status:
-            setattr(payment, 'status', new_status)
+            setattr(payment, "status", new_status)
             db.commit()
             db.refresh(payment)
 

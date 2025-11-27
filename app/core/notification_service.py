@@ -308,8 +308,8 @@ class NotificationService:
         )
 
         if notification:
-            setattr(notification, 'read_status', True)
-            setattr(notification, 'updated_at', datetime.utcnow())
+            setattr(notification, "read_status", True)
+            setattr(notification, "updated_at", datetime.utcnow())
             db.commit()
             db.refresh(notification)
 

@@ -63,10 +63,9 @@ class UploadService:
         # Validar nome do arquivo
         if not file.filename:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Nome do arquivo não pode ser vazio"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Nome do arquivo não pode ser vazio"
             )
-        
+
         # Validar extensão
         if not self._validate_file_extension(file.filename, allowed_types):
             allowed_exts = (

@@ -95,7 +95,9 @@ class BackgroundTasksService:
             days_until_due = (payment.due_date - current_date).days
 
             # Verificar se deve enviar lembrete
-            due_date_val = payment.due_date if isinstance(payment.due_date, date) else payment.due_date
+            due_date_val = (
+                payment.due_date if isinstance(payment.due_date, date) else payment.due_date
+            )
             reminder_type = PaymentCalculationService.should_send_payment_reminder(due_date_val)  # type: ignore[arg-type]
 
             if reminder_type:
@@ -143,7 +145,9 @@ class BackgroundTasksService:
         notifications_created = 0
 
         for payment in payments:
-            due_date_val = payment.due_date if isinstance(payment.due_date, date) else payment.due_date
+            due_date_val = (
+                payment.due_date if isinstance(payment.due_date, date) else payment.due_date
+            )
             days_overdue = PaymentCalculationService.calculate_days_overdue(due_date_val)  # type: ignore[arg-type]
 
             if days_overdue > 0:
@@ -223,11 +227,17 @@ class BackgroundTasksService:
             old_status = payment.status
 
             # Converter Column para tipos Python
-            due_date_val = payment.due_date if isinstance(payment.due_date, date) else payment.due_date
-            payment_date_val = payment.payment_date if payment.payment_date is None or isinstance(payment.payment_date, date) else payment.payment_date
+            due_date_val = (
+                payment.due_date if isinstance(payment.due_date, date) else payment.due_date
+            )
+            payment_date_val = (
+                payment.payment_date
+                if payment.payment_date is None or isinstance(payment.payment_date, date)
+                else payment.payment_date
+            )
             amount_val = Decimal(str(payment.amount)) if payment.payment_date else None
             total_val = Decimal(str(payment.total_amount))
-            
+
             # Determinar novo status
             new_status = PaymentCalculationService.determine_payment_status(
                 due_date_val,  # type: ignore[arg-type]
@@ -238,7 +248,7 @@ class BackgroundTasksService:
 
             # Atualizar se mudou
             if old_status != new_status:
-                setattr(payment, 'status', new_status)
+                setattr(payment, "status", new_status)
 
                 if old_status == "pending" and new_status == "overdue":
                     changes["pending_to_overdue"] += 1
