@@ -15,21 +15,35 @@ class PropertyRepository(BaseRepository[Property, PropertyCreate, PropertyUpdate
         super().__init__(Property)
         self.db = db
 
-    def get_by_user(self, db: Session, user_id: int, skip: int = 0, limit: int = 100) -> List[Property]:
+    def get_by_user(
+        self, db: Session, user_id: int, skip: int = 0, limit: int = 100
+    ) -> List[Property]:
         """Buscar propriedades do usuário"""
-        return db.query(Property).filter(Property.user_id == user_id).offset(skip).limit(limit).all()
+        return (
+            db.query(Property).filter(Property.user_id == user_id).offset(skip).limit(limit).all()
+        )
 
     def get_by_id_and_user(self, db: Session, property_id: int, user_id: int) -> Optional[Property]:
         """Buscar propriedade por ID e usuário"""
-        return db.query(Property).filter(Property.id == property_id, Property.user_id == user_id).first()
+        return (
+            db.query(Property)
+            .filter(Property.id == property_id, Property.user_id == user_id)
+            .first()
+        )
 
     def get_by_status(self, db: Session, user_id: int, status: str) -> List[Property]:
         """Buscar propriedades por status (filtrando por usuário)"""
-        return db.query(Property).filter(Property.user_id == user_id, Property.status == status).all()
+        return (
+            db.query(Property).filter(Property.user_id == user_id, Property.status == status).all()
+        )
 
     def get_by_property_type(self, db: Session, user_id: int, property_type: str) -> List[Property]:
         """Buscar propriedades por tipo (filtrando por usuário)"""
-        return db.query(Property).filter(Property.user_id == user_id, Property.type == property_type).all()
+        return (
+            db.query(Property)
+            .filter(Property.user_id == user_id, Property.type == property_type)
+            .all()
+        )
 
     def search_properties(
         self,
@@ -72,7 +86,9 @@ class PropertyRepository(BaseRepository[Property, PropertyCreate, PropertyUpdate
         """Buscar apenas propriedades disponíveis (filtrando por usuário)"""
         return self.get_by_status(db, user_id, "vacant")
 
-    def update_status(self, db: Session, property_id: int, user_id: int, status: str) -> Optional[Property]:
+    def update_status(
+        self, db: Session, property_id: int, user_id: int, status: str
+    ) -> Optional[Property]:
         """Atualizar apenas o status da propriedade (validando owner)"""
         property_obj = self.get_by_id_and_user(db, property_id, user_id)
         if property_obj:

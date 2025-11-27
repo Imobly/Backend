@@ -24,9 +24,10 @@ async def create_expense(
     # Criar despesa com user_id do token
     expense_data = expense.model_dump()
     expense_data["user_id"] = user_id
-    
+
     # Criar modelo Expense
     from .models import Expense
+
     db_expense = Expense(**expense_data)
     db.add(db_expense)
     db.commit()
@@ -47,25 +48,28 @@ async def list_expenses(
 ):
     """Listar despesas do usuário autenticado"""
     expense_repo = get_expense_repository(db)
-    
+
     # Buscar apenas despesas do usuário autenticado (multi-tenancy)
     from .models import Expense
+
     query = db.query(Expense).filter(Expense.user_id == user_id)
-    
+
     # Aplicar filtros
     if property_id:
         query = query.filter(Expense.property_id == property_id)
     if category:
         query = query.filter(Expense.category == category)
-    
+
     # Filtrar por mês/ano se especificado
     if year:
         from sqlalchemy import extract
-        query = query.filter(extract('year', Expense.date) == year)
+
+        query = query.filter(extract("year", Expense.date) == year)
     if month:
         from sqlalchemy import extract
-        query = query.filter(extract('month', Expense.date) == month)
-    
+
+        query = query.filter(extract("month", Expense.date) == month)
+
     expenses = query.offset(skip).limit(limit).all()
     return expenses
 
@@ -82,7 +86,7 @@ async def get_expense(
 
     if not expense:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Despesa não encontrada")
-    
+
     # Verificar se a despesa pertence ao usuário (multi-tenancy)
     if expense.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso negado")
@@ -103,7 +107,7 @@ async def update_expense(
 
     if not expense:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Despesa não encontrada")
-    
+
     # Verificar se a despesa pertence ao usuário (multi-tenancy)
     if expense.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso negado")
@@ -124,7 +128,7 @@ async def delete_expense(
 
     if not expense:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Despesa não encontrada")
-    
+
     # Verificar se a despesa pertence ao usuário (multi-tenancy)
     if expense.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso negado")
@@ -188,80 +192,78 @@ async def get_expenses_by_category(
 
 # ==================== UPLOAD ENDPOINTS ====================
 
+
 @router.post("/{expense_id}/upload-documents", status_code=status.HTTP_201_CREATED)
 async def upload_expense_documents(
     expense_id: str,
     files: List[UploadFile] = File(..., description="Documentos/comprovantes (imagens ou PDFs)"),
-    document_type: str = Query("comprovante", description="Tipo: comprovante, nota_fiscal, recibo, outros"),
+    document_type: str = Query(
+        "comprovante", description="Tipo: comprovante, nota_fiscal, recibo, outros"
+    ),
     user_id: int = Depends(get_current_user_id_from_token),
     db: Session = Depends(get_db),
 ):
     """
     Upload de múltiplos documentos/comprovantes para uma despesa
-    
+
     - Aceita até 5 arquivos por requisição
     - Formatos: JPG, JPEG, PNG, PDF
     - Tamanho máximo: 10MB por arquivo
     - Documentos são adicionados ao array existente
     """
     from datetime import datetime
-    
+
     # Validar número de arquivos
     if len(files) > 5:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Número máximo de arquivos excedido. Máximo: 5"
+            detail="Número máximo de arquivos excedido. Máximo: 5",
         )
-    
+
     # Verificar se a despesa existe
     expense_repo = get_expense_repository(db)
     expense = expense_repo.get(db, expense_id)
-    
+
     if not expense:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Despesa não encontrada"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Despesa não encontrada")
+
     # Verificar permissão (multi-tenancy)
     if expense.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso negado")
-    
+
     # Upload dos arquivos
     uploaded_files = []
     for file in files:
         file_info = await upload_service.save_file(
-            file=file,
-            folder=f"expenses/{expense_id}",
-            allowed_types="all"
+            file=file, folder=f"expenses/{expense_id}", allowed_types="all"
         )
-        
+
         # Criar objeto de documento
         document = {
-            "id": file_info["filename"].split('.')[0],
+            "id": file_info["filename"].split(".")[0],
             "name": file_info["original_filename"],
             "type": document_type,
             "url": file_info["url"],
             "file_type": file_info["type"],
             "size": file_info["size"],
-            "uploaded_at": datetime.now().isoformat()
+            "uploaded_at": datetime.now().isoformat(),
         }
-        
+
         uploaded_files.append(file_info)
-        
+
         # Adicionar ao array de documentos
         if expense.documents is None:
             expense.documents = []
         expense.documents.append(document)
-    
+
     # Atualizar no banco
     db.commit()
     db.refresh(expense)
-    
+
     return {
         "message": f"{len(files)} documento(s) enviado(s) com sucesso",
         "uploaded_files": uploaded_files,
-        "total_documents": len(expense.documents) if expense.documents else 0
+        "total_documents": len(expense.documents) if expense.documents else 0,
     }
 
 
@@ -276,21 +278,18 @@ async def list_expense_documents(
     """
     expense_repo = get_expense_repository(db)
     expense = expense_repo.get(db, expense_id)
-    
+
     if not expense:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Despesa não encontrada"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Despesa não encontrada")
+
     # Verificar permissão
     if expense.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso negado")
-    
+
     return {
         "expense_id": expense_id,
         "documents": expense.documents or [],
-        "total_documents": len(expense.documents) if expense.documents else 0
+        "total_documents": len(expense.documents) if expense.documents else 0,
     }
 
 
@@ -303,34 +302,31 @@ async def delete_expense_document(
 ):
     """
     Deletar um documento específico de uma despesa
-    
+
     - Remove o arquivo do servidor
     - Remove do array de documentos no banco
     """
     expense_repo = get_expense_repository(db)
     expense = expense_repo.get(db, expense_id)
-    
+
     if not expense:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Despesa não encontrada"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Despesa não encontrada")
+
     # Verificar permissão
     if expense.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso negado")
-    
+
     # Verificar se existe documentos
     if not expense.documents:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Nenhum documento encontrado para esta despesa"
+            detail="Nenhum documento encontrado para esta despesa",
         )
-    
+
     # Procurar e remover documento
     document_found = False
     updated_documents = []
-    
+
     for doc in expense.documents:
         if doc.get("url") == document_url:
             document_found = True
@@ -338,26 +334,26 @@ async def delete_expense_document(
             upload_service.delete_file(document_url)
         else:
             updated_documents.append(doc)
-    
+
     if not document_found:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Documento não encontrado"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Documento não encontrado"
         )
-    
+
     # Atualizar array
     expense.documents = updated_documents
     db.commit()
     db.refresh(expense)
-    
+
     return {
         "message": "Documento deletado com sucesso",
         "file_deleted": True,
-        "remaining_documents": len(expense.documents)
+        "remaining_documents": len(expense.documents),
     }
 
 
 # ==================== ENDPOINTS LEGADOS (COMPATIBILIDADE) ====================
+
 
 @router.post("/{expense_id}/upload-receipt", status_code=status.HTTP_201_CREATED)
 async def upload_expense_receipt(
@@ -368,7 +364,7 @@ async def upload_expense_receipt(
 ):
     """
     Upload de nota fiscal ou comprovante de despesa
-    
+
     - Aceita imagens (JPG, PNG) ou PDF
     - Tamanho máximo: 10MB
     - Substitui o arquivo anterior se já existir
@@ -376,39 +372,30 @@ async def upload_expense_receipt(
     # Verificar se a despesa existe
     expense_repo = get_expense_repository(db)
     expense = expense_repo.get(db, expense_id)
-    
+
     if not expense:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Despesa não encontrada"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Despesa não encontrada")
+
     # Verificar se a despesa pertence ao usuário (quando multi-tenancy for implementado)
     # if expense.user_id != user_id:
     #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso negado")
-    
+
     # Se já existe um recibo, deletar o arquivo antigo
     if expense.receipt:
         upload_service.delete_file(expense.receipt)
-    
+
     # Salvar novo arquivo
     file_info = await upload_service.save_file(
-        file=file,
-        folder=f"expenses/{expense_id}",
-        allowed_types="all"  # Permite imagens e PDFs
+        file=file, folder=f"expenses/{expense_id}", allowed_types="all"  # Permite imagens e PDFs
     )
-    
+
     # Atualizar despesa com URL do novo recibo
-    expense_repo.update(
-        db,
-        db_obj=expense,
-        obj_in=ExpenseUpdate(receipt=file_info["url"])
-    )
-    
+    expense_repo.update(db, db_obj=expense, obj_in=ExpenseUpdate(receipt=file_info["url"]))
+
     return {
         "message": "Comprovante enviado com sucesso",
         "file_info": file_info,
-        "expense_id": expense_id
+        "expense_id": expense_id,
     }
 
 
@@ -420,38 +407,28 @@ async def delete_expense_receipt(
 ):
     """
     Deletar comprovante de uma despesa
-    
+
     - Remove o arquivo do servidor
     - Limpa o campo receipt no banco de dados
     """
     # Verificar se a despesa existe
     expense_repo = get_expense_repository(db)
     expense = expense_repo.get(db, expense_id)
-    
+
     if not expense:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Despesa não encontrada"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Despesa não encontrada")
+
     # Verificar se existe um recibo
     if not expense.receipt:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Nenhum comprovante encontrado para esta despesa"
+            detail="Nenhum comprovante encontrado para esta despesa",
         )
-    
+
     # Deletar arquivo físico
     deleted = upload_service.delete_file(expense.receipt)
-    
+
     # Limpar campo no banco
-    expense_repo.update(
-        db,
-        db_obj=expense,
-        obj_in=ExpenseUpdate(receipt=None)
-    )
-    
-    return {
-        "message": "Comprovante deletado com sucesso",
-        "file_deleted": deleted
-    }
+    expense_repo.update(db, db_obj=expense, obj_in=ExpenseUpdate(receipt=None))
+
+    return {"message": "Comprovante deletado com sucesso", "file_deleted": deleted}

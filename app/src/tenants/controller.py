@@ -67,11 +67,12 @@ class tenant_controller:
         # Adiciona user_id ao objeto Pydantic
         tenant_dict = tenant_data.model_dump()
         tenant_dict["user_id"] = user_id
-        
+
         # Cria um novo objeto Pydantic com user_id incluído
         from app.src.tenants.schemas import TenantCreateInternal
+
         tenant_with_user = TenantCreateInternal(**tenant_dict)
-        
+
         return self.repository.create(db, obj_in=tenant_with_user)
 
     def update_tenant(
@@ -98,7 +99,7 @@ class tenant_controller:
         tenant_obj = self.repository.get_by_id_and_user(db, tenant_id, user_id)
         if not tenant_obj:
             raise HTTPException(status_code=404, detail="Inquilino não encontrado")
-            
+
         success = self.repository.delete(db, id=tenant_id)
         if not success:
             raise HTTPException(status_code=404, detail="Inquilino não encontrado")

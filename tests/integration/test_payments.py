@@ -1,6 +1,7 @@
 """Integration tests for Payments API"""
 
 from datetime import date
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -43,12 +44,19 @@ class TestPaymentsAPI:
 
         response = client.post("/api/v1/payments/", json=payment_data)
         assert response.status_code == 201
-        
+
         payment = response.json()
         assert payment["status"] == "pending"
         assert "id" in payment
 
-    def test_get_payment(self, client: TestClient, sample_property_data, sample_tenant_data, sample_contract_data, sample_payment_data):
+    def test_get_payment(
+        self,
+        client: TestClient,
+        sample_property_data,
+        sample_tenant_data,
+        sample_contract_data,
+        sample_payment_data,
+    ):
         """Test retrieving a payment by ID"""
         # Create dependencies
         prop_response = client.post("/api/v1/properties/", json=sample_property_data)
@@ -83,7 +91,14 @@ class TestPaymentsAPI:
         assert response.status_code == 200
         assert isinstance(response.json(), list)
 
-    def test_update_payment(self, client: TestClient, sample_property_data, sample_tenant_data, sample_contract_data, sample_payment_data):
+    def test_update_payment(
+        self,
+        client: TestClient,
+        sample_property_data,
+        sample_tenant_data,
+        sample_contract_data,
+        sample_payment_data,
+    ):
         """Test updating a payment"""
         # Create dependencies
         prop_response = client.post("/api/v1/properties/", json=sample_property_data)
@@ -108,19 +123,22 @@ class TestPaymentsAPI:
         payment_id = create_response.json()["id"]
 
         # Update to paid
-        update_data = {
-            "status": "paid",
-            "payment_date": "2025-01-03",
-            "payment_method": "pix"
-        }
+        update_data = {"status": "paid", "payment_date": "2025-01-03", "payment_method": "pix"}
         response = client.put(f"/api/v1/payments/{payment_id}", json=update_data)
         assert response.status_code == 200
-        
+
         updated = response.json()
         assert updated["status"] == "paid"
         assert updated["payment_method"] == "pix"
 
-    def test_delete_payment(self, client: TestClient, sample_property_data, sample_tenant_data, sample_contract_data, sample_payment_data):
+    def test_delete_payment(
+        self,
+        client: TestClient,
+        sample_property_data,
+        sample_tenant_data,
+        sample_contract_data,
+        sample_payment_data,
+    ):
         """Test deleting a payment"""
         # Create dependencies
         prop_response = client.post("/api/v1/properties/", json=sample_property_data)

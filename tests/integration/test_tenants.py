@@ -11,7 +11,7 @@ class TestTenantsAPI:
         """Test creating a tenant"""
         response = client.post("/api/v1/tenants/", json=sample_tenant_data)
         assert response.status_code == 201
-        
+
         tenant = response.json()
         assert tenant["name"] == sample_tenant_data["name"]
         assert tenant["email"] == sample_tenant_data["email"]
@@ -44,7 +44,7 @@ class TestTenantsAPI:
         update_data = {"phone": "+5511888888888", "profession": "Developer"}
         response = client.put(f"/api/v1/tenants/{tenant_id}", json=update_data)
         assert response.status_code == 200
-        
+
         updated = response.json()
         assert updated["phone"] == "+5511888888888"
         assert updated["profession"] == "Developer"

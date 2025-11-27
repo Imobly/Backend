@@ -1,8 +1,8 @@
 """Pytest configuration and fixtures"""
 
-from typing import Generator
 import os
 import sys
+from typing import Generator
 
 import pytest
 from fastapi.testclient import TestClient
@@ -23,42 +23,48 @@ PRODUCTION_DATABASE_URL = os.getenv("DATABASE_URL")
 
 # VALIDAÇÃO 1: TEST_DATABASE_URL deve estar definido
 if not TEST_DATABASE_URL:
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("❌ ERRO: TEST_DATABASE_URL não está definido!")
-    print("="*80)
+    print("=" * 80)
     print("\nPara rodar os testes, você DEVE definir uma URL de banco SEPARADA.")
     print("\nExemplos:")
     print("  Windows PowerShell:")
-    print('    $env:TEST_DATABASE_URL="postgresql://postgres:admin123@localhost:5432/imovel_gestao_test"')
+    print(
+        '    $env:TEST_DATABASE_URL="postgresql://postgres:admin123@localhost:5432/imovel_gestao_test"'
+    )
     print("\n  Linux/Mac:")
-    print('    export TEST_DATABASE_URL="postgresql://postgres:admin123@localhost:5432/imovel_gestao_test"')
+    print(
+        '    export TEST_DATABASE_URL="postgresql://postgres:admin123@localhost:5432/imovel_gestao_test"'
+    )
     print("\n  Docker Compose:")
-    print('    docker compose exec backend sh -c "TEST_DATABASE_URL=postgresql://postgres:admin123@postgres:5432/imovel_gestao_test pytest"')
-    print("\n" + "="*80)
+    print(
+        '    docker compose exec backend sh -c "TEST_DATABASE_URL=postgresql://postgres:admin123@postgres:5432/imovel_gestao_test pytest"'
+    )
+    print("\n" + "=" * 80)
     sys.exit(1)
 
 # VALIDAÇÃO 2: TEST_DATABASE_URL deve ser diferente de DATABASE_URL
 if PRODUCTION_DATABASE_URL and TEST_DATABASE_URL == PRODUCTION_DATABASE_URL:
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("❌ ERRO: TEST_DATABASE_URL é igual a DATABASE_URL (produção)!")
-    print("="*80)
+    print("=" * 80)
     print("\nVocê está tentando rodar testes no BANCO DE PRODUÇÃO.")
     print("Isso pode APAGAR TODOS OS SEUS DADOS!")
     print("\nUse um banco diferente para testes.")
     print(f"\n  Produção: {PRODUCTION_DATABASE_URL}")
     print(f"  Testes:   {TEST_DATABASE_URL}")
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     sys.exit(1)
 
 # VALIDAÇÃO 3: Se for Postgres, garantir que o nome do banco termina com '_test'
 if TEST_DATABASE_URL.startswith("postgresql"):
     if not ("_test" in TEST_DATABASE_URL or ":memory:" in TEST_DATABASE_URL):
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("⚠️  AVISO: O nome do banco de testes deve conter '_test'")
-        print("="*80)
+        print("=" * 80)
         print(f"\n  URL atual: {TEST_DATABASE_URL}")
         print("\n  Recomendado: postgresql://user:pass@host:port/imovel_gestao_test")
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         response = input("\nContinuar mesmo assim? (digite 'SIM' para confirmar): ")
         if response != "SIM":
             sys.exit(1)
@@ -83,7 +89,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 def db() -> Generator[Session, None, None]:
     """Create a fresh database for each test in isolated schema"""
     from sqlalchemy import text
-    
+
     # Para Postgres, usar schema isolado 'test_schema'
     if TEST_DATABASE_URL.startswith("postgresql"):
         with engine.connect() as conn:
@@ -92,17 +98,17 @@ def db() -> Generator[Session, None, None]:
             conn.execute(text("CREATE SCHEMA test_schema"))
             conn.execute(text("SET search_path TO test_schema"))
             conn.commit()
-    
+
     # Criar todas as tabelas
     Base.metadata.create_all(bind=engine)
-    
+
     db = TestingSessionLocal()
-    
+
     # Para Postgres, configurar o search_path na sessão
     if TEST_DATABASE_URL.startswith("postgresql"):
         db.execute(text("SET search_path TO test_schema"))
         db.commit()
-    
+
     try:
         yield db
     finally:

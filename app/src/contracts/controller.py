@@ -48,7 +48,9 @@ class contract_controller:
             raise HTTPException(status_code=404, detail="Contrato não encontrado")
         return contract_obj
 
-    def create_contract(self, db: Session, user_id: int, contract_data: ContractCreate) -> ContractResponse:
+    def create_contract(
+        self, db: Session, user_id: int, contract_data: ContractCreate
+    ) -> ContractResponse:
         """Criar novo contrato"""
         # Verificar se propriedade está disponível no período
         if not self.repository.check_property_availability(
@@ -61,9 +63,10 @@ class contract_controller:
         # Adiciona user_id ao objeto Pydantic
         contract_dict = contract_data.model_dump()
         contract_dict["user_id"] = user_id
-        
+
         # Cria um novo objeto Pydantic com user_id incluído
         from app.src.contracts.schemas import ContractCreateInternal
+
         contract_with_user = ContractCreateInternal(**contract_dict)
 
         return self.repository.create(db, obj_in=contract_with_user)
@@ -84,13 +87,15 @@ class contract_controller:
         contract_obj = self.repository.get_by_id_and_user(db, contract_id, user_id)
         if not contract_obj:
             raise HTTPException(status_code=404, detail="Contrato não encontrado")
-        
+
         success = self.repository.delete(db, id=contract_id)
         if not success:
             raise HTTPException(status_code=404, detail="Contrato não encontrado")
         return {"message": "Contrato deletado com sucesso"}
 
-    def get_expiring_contracts(self, db: Session, user_id: int, days_ahead: int = 30) -> Sequence[Contract]:
+    def get_expiring_contracts(
+        self, db: Session, user_id: int, days_ahead: int = 30
+    ) -> Sequence[Contract]:
         """Obter contratos que vencem em breve"""
         return self.repository.get_expiring_contracts(db, user_id, days_ahead)
 
@@ -99,10 +104,17 @@ class contract_controller:
         return self.repository.get_active_contracts(db, user_id)
 
     def renew_contract(
-        self, db: Session, contract_id: int, user_id: int, new_end_date: date, new_rent: Optional[float] = None
+        self,
+        db: Session,
+        contract_id: int,
+        user_id: int,
+        new_end_date: date,
+        new_rent: Optional[float] = None,
     ) -> ContractResponse:
         """Renovar contrato"""
-        contract_obj = self.repository.renew_contract(db, contract_id, user_id, new_end_date, new_rent)
+        contract_obj = self.repository.renew_contract(
+            db, contract_id, user_id, new_end_date, new_rent
+        )
         if not contract_obj:
             raise HTTPException(status_code=404, detail="Contrato não encontrado")
         return contract_obj

@@ -11,7 +11,7 @@ class TestDashboardAPI:
         """Test getting dashboard statistics"""
         response = client.get("/api/v1/dashboard/stats")
         assert response.status_code == 200
-        
+
         stats = response.json()
         assert "total_properties" in stats
         assert "total_tenants" in stats
@@ -22,7 +22,7 @@ class TestDashboardAPI:
         """Test getting dashboard summary"""
         response = client.get("/api/v1/dashboard/summary")
         assert response.status_code == 200
-        
+
         summary = response.json()
         assert "properties" in summary
         assert "contracts" in summary
@@ -32,7 +32,7 @@ class TestDashboardAPI:
         """Test getting revenue chart data"""
         response = client.get("/api/v1/dashboard/revenue-chart?months=6")
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "data" in data
         assert isinstance(data["data"], list)
@@ -41,7 +41,7 @@ class TestDashboardAPI:
         """Test getting revenue vs expenses data"""
         response = client.get("/api/v1/dashboard/revenue-vs-expenses?months=6")
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "data" in data
         assert isinstance(data["data"], list)
@@ -50,7 +50,7 @@ class TestDashboardAPI:
         """Test getting financial overview"""
         response = client.get("/api/v1/dashboard/financial-overview")
         assert response.status_code == 200
-        
+
         overview = response.json()
         assert "period" in overview
         # API returns different structure, just verify we got data
@@ -60,7 +60,7 @@ class TestDashboardAPI:
         """Test getting properties status"""
         response = client.get("/api/v1/dashboard/properties-status")
         assert response.status_code == 200
-        
+
         status = response.json()
         assert "summary" in status
         assert "properties" in status
@@ -70,7 +70,7 @@ class TestDashboardAPI:
         """Test getting property performance"""
         response = client.get("/api/v1/dashboard/property-performance")
         assert response.status_code == 200
-        
+
         performance = response.json()
         assert "properties" in performance
         assert isinstance(performance["properties"], list)
@@ -79,7 +79,7 @@ class TestDashboardAPI:
         """Test getting recent activity"""
         response = client.get("/api/v1/dashboard/recent-activity?limit=10")
         assert response.status_code == 200
-        
+
         # Just verify we got a response
         activity = response.json()
         assert activity is not None

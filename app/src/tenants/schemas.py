@@ -13,7 +13,9 @@ class EmergencyContact(BaseModel):
 class TenantDocument(BaseModel):
     id: str
     name: str = Field(..., min_length=1, max_length=255)
-    type: str = Field(..., pattern="^(rg|cpf|cnh|comprovante_residencia|comprovante_renda|contrato|outros)$")
+    type: str = Field(
+        ..., pattern="^(rg|cpf|cnh|comprovante_residencia|comprovante_renda|contrato|outros)$"
+    )
     url: str
 
 
@@ -36,6 +38,7 @@ class TenantCreate(TenantBase):
 
 class TenantCreateInternal(TenantBase):
     """Schema interno para criação com user_id"""
+
     user_id: int
 
 

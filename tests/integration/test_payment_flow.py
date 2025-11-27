@@ -110,9 +110,7 @@ class TestPaymentFlow:
         response = client.post("/api/v1/tenants/", json=data)
         assert response.status_code in [400, 422]
 
-    def test_property_unit_relationship(
-        self, client: TestClient, sample_property_data
-    ):
+    def test_property_unit_relationship(self, client: TestClient, sample_property_data):
         """Test property creation - simplified test"""
         # Units require user_id which is complex to setup, just test property
         response = client.post("/api/v1/properties/", json=sample_property_data)

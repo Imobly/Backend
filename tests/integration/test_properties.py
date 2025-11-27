@@ -11,7 +11,7 @@ class TestPropertiesAPI:
         """Test creating a property"""
         response = client.post("/api/v1/properties/", json=sample_property_data)
         assert response.status_code == 201
-        
+
         property_obj = response.json()
         assert property_obj["name"] == sample_property_data["name"]
         assert property_obj["status"] == "vacant"
@@ -57,7 +57,7 @@ class TestPropertiesAPI:
         update_data = {"status": "occupied", "rent": 2000.00}
         response = client.put(f"/api/v1/properties/{property_id}", json=update_data)
         assert response.status_code == 200
-        
+
         updated = response.json()
         assert updated["status"] == "occupied"
         assert float(updated["rent"]) == 2000.00

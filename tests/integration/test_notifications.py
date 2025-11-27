@@ -19,7 +19,9 @@ class TestNotificationsAPI:
         assert response.status_code == 200
         assert isinstance(response.json(), list)
 
-    def test_mark_notification_as_read(self, client: TestClient, sample_property_data, sample_tenant_data):
+    def test_mark_notification_as_read(
+        self, client: TestClient, sample_property_data, sample_tenant_data
+    ):
         """Test marking a notification as read"""
         # Create some entities to potentially trigger notifications
         client.post("/api/v1/properties/", json=sample_property_data)
@@ -31,11 +33,11 @@ class TestNotificationsAPI:
 
         if len(notifications) > 0:
             notification_id = notifications[0]["id"]
-            
+
             # Mark as read
             response = client.patch(f"/api/v1/notifications/{notification_id}/read")
             assert response.status_code == 200
-            
+
             updated = response.json()
             assert updated["read"] is True
 
@@ -53,7 +55,7 @@ class TestNotificationsAPI:
 
         if len(notifications) > 0:
             notification_id = notifications[0]["id"]
-            
+
             # Delete
             response = client.delete(f"/api/v1/notifications/{notification_id}")
             assert response.status_code == 200
@@ -64,7 +66,7 @@ class TestNotificationsAPI:
         notifications = response.json()
 
         valid_types = ["payment", "contract", "expense", "maintenance", "info"]
-        
+
         for notification in notifications:
             if "type" in notification:
                 assert notification["type"] in valid_types

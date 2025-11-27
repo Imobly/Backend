@@ -1,6 +1,7 @@
 """Integration tests for Contracts API"""
 
 from datetime import date, timedelta
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -42,7 +43,14 @@ class TestContractsAPI:
         assert contract["tenant_id"] == tenant_id
         assert contract["status"] == "active"
 
-    def test_get_contract(self, client: TestClient, db: Session, sample_property_data, sample_tenant_data, sample_contract_data):
+    def test_get_contract(
+        self,
+        client: TestClient,
+        db: Session,
+        sample_property_data,
+        sample_tenant_data,
+        sample_contract_data,
+    ):
         """Test retrieving a contract by ID"""
         # Create dependencies
         prop_response = client.post("/api/v1/properties/", json=sample_property_data)
@@ -70,7 +78,9 @@ class TestContractsAPI:
         assert response.status_code == 200
         assert isinstance(response.json(), list)
 
-    def test_update_contract(self, client: TestClient, sample_property_data, sample_tenant_data, sample_contract_data):
+    def test_update_contract(
+        self, client: TestClient, sample_property_data, sample_tenant_data, sample_contract_data
+    ):
         """Test updating a contract"""
         # Create dependencies
         prop_response = client.post("/api/v1/properties/", json=sample_property_data)
@@ -94,7 +104,9 @@ class TestContractsAPI:
         updated = response.json()
         assert float(updated["rent"]) == 2000.00
 
-    def test_delete_contract(self, client: TestClient, sample_property_data, sample_tenant_data, sample_contract_data):
+    def test_delete_contract(
+        self, client: TestClient, sample_property_data, sample_tenant_data, sample_contract_data
+    ):
         """Test deleting a contract"""
         # Create dependencies
         prop_response = client.post("/api/v1/properties/", json=sample_property_data)

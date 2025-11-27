@@ -55,7 +55,9 @@ class payment_controller:
             raise HTTPException(status_code=404, detail="Pagamento não encontrado")
         return payment_obj
 
-    def create_payment(self, db: Session, user_id: int, payment_data: PaymentCreate) -> PaymentResponse:
+    def create_payment(
+        self, db: Session, user_id: int, payment_data: PaymentCreate
+    ) -> PaymentResponse:
         """Criar novo pagamento"""
         # Validar se o contrato existe e pertence ao usuário
         contract = self.contract_repository.get(db, payment_data.contract_id)
@@ -111,14 +113,19 @@ class payment_controller:
         payment_obj = self.repository.get_by_id_and_user(db, payment_id, user_id)
         if not payment_obj:
             raise HTTPException(status_code=404, detail="Pagamento não encontrado")
-            
+
         success = self.repository.delete(db, id=payment_id)
         if not success:
             raise HTTPException(status_code=404, detail="Pagamento não encontrado")
         return {"message": "Pagamento deletado com sucesso"}
 
     def process_payment(
-        self, db: Session, payment_id: int, user_id: int, payment_method: str, payment_date: Optional[date] = None
+        self,
+        db: Session,
+        payment_id: int,
+        user_id: int,
+        payment_method: str,
+        payment_date: Optional[date] = None,
     ) -> PaymentResponse:
         """Processar pagamento"""
         if not payment_date:

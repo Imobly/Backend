@@ -29,7 +29,7 @@ class UploadService:
     ) -> bool:
         """Valida a extensão do arquivo"""
         ext = Path(filename).suffix.lower()
-        
+
         if allowed_types == "image":
             return ext in self.ALLOWED_IMAGE_EXTENSIONS
         elif allowed_types == "document":

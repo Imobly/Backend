@@ -15,7 +15,9 @@ class TenantRepository(BaseRepository[Tenant, TenantCreate, TenantUpdate]):
         super().__init__(Tenant)
         self.db = db
 
-    def get_by_user(self, db: Session, user_id: int, skip: int = 0, limit: int = 100) -> List[Tenant]:
+    def get_by_user(
+        self, db: Session, user_id: int, skip: int = 0, limit: int = 100
+    ) -> List[Tenant]:
         """Buscar inquilinos do usuário"""
         return db.query(Tenant).filter(Tenant.user_id == user_id).offset(skip).limit(limit).all()
 
@@ -68,7 +70,9 @@ class TenantRepository(BaseRepository[Tenant, TenantCreate, TenantUpdate]):
         errors = {}
 
         # Verificar email único (no escopo do usuário)
-        email_query = db.query(Tenant).filter(Tenant.user_id == user_id, Tenant.email == tenant_data.email)
+        email_query = db.query(Tenant).filter(
+            Tenant.user_id == user_id, Tenant.email == tenant_data.email
+        )
         if exclude_id:
             email_query = email_query.filter(Tenant.id != exclude_id)
 
@@ -76,7 +80,9 @@ class TenantRepository(BaseRepository[Tenant, TenantCreate, TenantUpdate]):
             errors["email"] = "Email já está em uso"
 
         # Verificar CPF único (no escopo do usuário)
-        cpf_query = db.query(Tenant).filter(Tenant.user_id == user_id, Tenant.cpf_cnpj == tenant_data.cpf_cnpj)
+        cpf_query = db.query(Tenant).filter(
+            Tenant.user_id == user_id, Tenant.cpf_cnpj == tenant_data.cpf_cnpj
+        )
         if exclude_id:
             cpf_query = cpf_query.filter(Tenant.id != exclude_id)
 

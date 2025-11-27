@@ -16,25 +16,41 @@ class PaymentRepository(BaseRepository[Payment, PaymentCreate, PaymentUpdate]):
         super().__init__(Payment)
         self.db = db
 
-    def get_by_user(self, db: Session, user_id: int, skip: int = 0, limit: int = 100) -> List[Payment]:
+    def get_by_user(
+        self, db: Session, user_id: int, skip: int = 0, limit: int = 100
+    ) -> List[Payment]:
         """Buscar pagamentos do usuário"""
         return db.query(Payment).filter(Payment.user_id == user_id).offset(skip).limit(limit).all()
 
     def get_by_id_and_user(self, db: Session, payment_id: int, user_id: int) -> Optional[Payment]:
         """Buscar pagamento por ID validando owner"""
-        return db.query(Payment).filter(Payment.id == payment_id, Payment.user_id == user_id).first()
+        return (
+            db.query(Payment).filter(Payment.id == payment_id, Payment.user_id == user_id).first()
+        )
 
     def get_by_contract(self, db: Session, user_id: int, contract_id: int) -> List[Payment]:
         """Buscar pagamentos por contrato (filtrando por usuário)"""
-        return db.query(Payment).filter(Payment.user_id == user_id, Payment.contract_id == contract_id).all()
+        return (
+            db.query(Payment)
+            .filter(Payment.user_id == user_id, Payment.contract_id == contract_id)
+            .all()
+        )
 
     def get_by_tenant(self, db: Session, user_id: int, tenant_id: int) -> List[Payment]:
         """Buscar pagamentos por inquilino (filtrando por usuário)"""
-        return db.query(Payment).filter(Payment.user_id == user_id, Payment.tenant_id == tenant_id).all()
+        return (
+            db.query(Payment)
+            .filter(Payment.user_id == user_id, Payment.tenant_id == tenant_id)
+            .all()
+        )
 
     def get_by_property(self, db: Session, user_id: int, property_id: int) -> List[Payment]:
         """Buscar pagamentos por propriedade (filtrando por usuário)"""
-        return db.query(Payment).filter(Payment.user_id == user_id, Payment.property_id == property_id).all()
+        return (
+            db.query(Payment)
+            .filter(Payment.user_id == user_id, Payment.property_id == property_id)
+            .all()
+        )
 
     def get_by_status(self, db: Session, user_id: int, status: str) -> List[Payment]:
         """Buscar pagamentos por status (filtrando por usuário)"""
@@ -47,7 +63,7 @@ class PaymentRepository(BaseRepository[Payment, PaymentCreate, PaymentUpdate]):
             .filter(
                 Payment.user_id == user_id,
                 Payment.status.in_(["pending", "partial"]),
-                Payment.due_date < date.today()
+                Payment.due_date < date.today(),
             )
             .all()
         )
@@ -57,7 +73,12 @@ class PaymentRepository(BaseRepository[Payment, PaymentCreate, PaymentUpdate]):
         return self.get_by_status(db, user_id, "pending")
 
     def get_payments_by_period(
-        self, db: Session, user_id: int, start_date: date, end_date: date, payment_field: str = "due_date"
+        self,
+        db: Session,
+        user_id: int,
+        start_date: date,
+        end_date: date,
+        payment_field: str = "due_date",
     ) -> List[Payment]:
         """Buscar pagamentos por período (filtrando por usuário)"""
         query = db.query(Payment).filter(Payment.user_id == user_id)

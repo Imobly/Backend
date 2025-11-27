@@ -1,6 +1,7 @@
 """Integration tests for Expenses API"""
 
 from datetime import date
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -21,7 +22,7 @@ class TestExpensesAPI:
 
         response = client.post("/api/v1/expenses/", json=expense_data)
         assert response.status_code == 201
-        
+
         expense = response.json()
         assert expense["description"] == sample_expense_data["description"]
         assert expense["status"] == "pending"
@@ -68,7 +69,7 @@ class TestExpensesAPI:
         update_data = {"status": "paid", "amount": 300.00}
         response = client.put(f"/api/v1/expenses/{expense_id}", json=update_data)
         assert response.status_code == 200
-        
+
         updated = response.json()
         assert updated["status"] == "paid"
         assert float(updated["amount"]) == 300.00
@@ -94,7 +95,9 @@ class TestExpensesAPI:
         get_response = client.get(f"/api/v1/expenses/{expense_id}")
         assert get_response.status_code == 404
 
-    def test_list_expenses_by_property(self, client: TestClient, sample_property_data, sample_expense_data):
+    def test_list_expenses_by_property(
+        self, client: TestClient, sample_property_data, sample_expense_data
+    ):
         """Test listing expenses filtered by property"""
         # Create property
         prop_response = client.post("/api/v1/properties/", json=sample_property_data)

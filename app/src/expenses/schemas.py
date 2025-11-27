@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 class ExpenseDocument(BaseModel):
     """Schema para documento/comprovante de despesa"""
+
     id: str
     name: str
     type: str  # 'comprovante', 'nota_fiscal', 'recibo', 'outros'

@@ -21,6 +21,7 @@ class PaymentBase(BaseModel):
 
 class PaymentCalculateRequest(BaseModel):
     """Schema para calcular valores de pagamento"""
+
     contract_id: int
     due_date: date
     payment_date: Optional[date] = None
@@ -29,6 +30,7 @@ class PaymentCalculateRequest(BaseModel):
 
 class PaymentCalculateResponse(BaseModel):
     """Schema com valores calculados"""
+
     base_amount: Decimal
     fine_amount: Decimal
     interest_amount: Decimal
@@ -42,6 +44,7 @@ class PaymentCalculateResponse(BaseModel):
 
 class PaymentRegisterRequest(BaseModel):
     """Schema simplificado para registrar pagamento (cálculo automático)"""
+
     contract_id: int
     due_date: date
     payment_date: date

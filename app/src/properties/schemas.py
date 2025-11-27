@@ -31,6 +31,7 @@ class PropertyCreate(PropertyBase):
 
 class PropertyCreateInternal(PropertyBase):
     """Schema interno para criação com user_id"""
+
     user_id: int
 
 

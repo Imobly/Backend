@@ -17,14 +17,12 @@ class ContractRepository(BaseRepository[Contract, ContractCreate, ContractUpdate
         super().__init__(Contract)
         self.db = db
 
-    def get_by_user(self, db: Session, user_id: int, skip: int = 0, limit: int = 100) -> List[Contract]:
+    def get_by_user(
+        self, db: Session, user_id: int, skip: int = 0, limit: int = 100
+    ) -> List[Contract]:
         """Buscar contratos do usuário"""
         return (
-            db.query(Contract)
-            .filter(Contract.user_id == user_id)
-            .offset(skip)
-            .limit(limit)
-            .all()
+            db.query(Contract).filter(Contract.user_id == user_id).offset(skip).limit(limit).all()
         )
 
     def get_by_id_and_user(self, db: Session, contract_id: int, user_id: int) -> Optional[Contract]:
@@ -54,16 +52,16 @@ class ContractRepository(BaseRepository[Contract, ContractCreate, ContractUpdate
     def get_by_status(self, db: Session, status: str, user_id: int) -> List[Contract]:
         """Buscar contratos por status"""
         return (
-            db.query(Contract)
-            .filter(Contract.status == status, Contract.user_id == user_id)
-            .all()
+            db.query(Contract).filter(Contract.status == status, Contract.user_id == user_id).all()
         )
 
     def get_active_contracts(self, db: Session, user_id: int) -> List[Contract]:
         """Buscar apenas contratos ativos"""
         return self.get_by_status(db, "active", user_id)
 
-    def get_expiring_contracts(self, db: Session, user_id: int, days_ahead: int = 30) -> List[Contract]:
+    def get_expiring_contracts(
+        self, db: Session, user_id: int, days_ahead: int = 30
+    ) -> List[Contract]:
         """Buscar contratos que vencem nos próximos X dias"""
         future_date = date.today() + timedelta(days=days_ahead)
         return (
@@ -84,7 +82,7 @@ class ContractRepository(BaseRepository[Contract, ContractCreate, ContractUpdate
             .filter(
                 Contract.user_id == user_id,
                 Contract.end_date < date.today(),
-                Contract.status == "active"
+                Contract.status == "active",
             )
             .all()
         )
@@ -105,7 +103,9 @@ class ContractRepository(BaseRepository[Contract, ContractCreate, ContractUpdate
             .first()
         )
 
-    def get_current_contract_for_tenant(self, db: Session, tenant_id: int, user_id: int) -> Optional[Contract]:
+    def get_current_contract_for_tenant(
+        self, db: Session, tenant_id: int, user_id: int
+    ) -> Optional[Contract]:
         """Buscar contrato ativo atual de um inquilino"""
         return (
             db.query(Contract)
@@ -145,7 +145,9 @@ class ContractRepository(BaseRepository[Contract, ContractCreate, ContractUpdate
 
         return query.first() is None
 
-    def update_status(self, db: Session, contract_id: int, user_id: int, status: str) -> Optional[Contract]:
+    def update_status(
+        self, db: Session, contract_id: int, user_id: int, status: str
+    ) -> Optional[Contract]:
         """Atualizar apenas o status do contrato"""
         contract_obj = self.get_by_id_and_user(db, contract_id, user_id)
         if contract_obj:
@@ -156,7 +158,12 @@ class ContractRepository(BaseRepository[Contract, ContractCreate, ContractUpdate
         return None
 
     def renew_contract(
-        self, db: Session, contract_id: int, user_id: int, new_end_date: date, new_rent: Optional[float] = None
+        self,
+        db: Session,
+        contract_id: int,
+        user_id: int,
+        new_end_date: date,
+        new_rent: Optional[float] = None,
     ) -> Optional[Contract]:
         """Renovar contrato"""
         contract_obj = self.get_by_id_and_user(db, contract_id, user_id)

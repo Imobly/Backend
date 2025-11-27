@@ -1,7 +1,7 @@
 """
 Background tasks para processar notificações e status automaticamente
 """
-from datetime import datetime, date
+from datetime import date, datetime
 from typing import List
 
 from sqlalchemy.orm import Session
@@ -19,235 +19,255 @@ class BackgroundTasksService:
     def process_contract_expiring_notifications(db: Session, user_id: int) -> int:
         """
         Processa notificações de contratos vencendo
-        
+
         Args:
             db: Sessão do banco
             user_id: ID do usuário
-        
+
         Returns:
             Número de notificações criadas
         """
         # Buscar contratos ativos do usuário
-        contracts = db.query(Contract).filter(
-            Contract.user_id == user_id,
-            Contract.status == "active"
-        ).all()
-        
+        contracts = (
+            db.query(Contract)
+            .filter(Contract.user_id == user_id, Contract.status == "active")
+            .all()
+        )
+
         notifications_created = 0
-        
+
         for contract in contracts:
-            notification_type = PaymentCalculationService.should_send_contract_expiring_notification(contract)
-            
+            notification_type = (
+                PaymentCalculationService.should_send_contract_expiring_notification(contract)
+            )
+
             if notification_type:
                 days = 60 if notification_type == "60_days" else 30
-                
+
                 # Verificar se já não existe notificação similar recente
-                from app.src.notifications.models import Notification
                 from datetime import timedelta
-                
-                recent_notification = db.query(Notification).filter(
-                    Notification.user_id == user_id,
-                    Notification.type == "contract_expiring",
-                    Notification.related_id == str(contract.id),
-                    Notification.created_at >= datetime.utcnow() - timedelta(days=3)  # Últimos 3 dias
-                ).first()
-                
+
+                from app.src.notifications.models import Notification
+
+                recent_notification = (
+                    db.query(Notification)
+                    .filter(
+                        Notification.user_id == user_id,
+                        Notification.type == "contract_expiring",
+                        Notification.related_id == str(contract.id),
+                        Notification.created_at
+                        >= datetime.utcnow() - timedelta(days=3),  # Últimos 3 dias
+                    )
+                    .first()
+                )
+
                 if not recent_notification:
                     NotificationService.create_contract_expiring_notification(
-                        db=db,
-                        contract=contract,
-                        days_until_expiry=days
+                        db=db, contract=contract, days_until_expiry=days
                     )
                     notifications_created += 1
-        
+
         return notifications_created
 
     @staticmethod
     def process_payment_reminders(db: Session, user_id: int) -> int:
         """
         Processa lembretes de pagamentos próximos do vencimento
-        
+
         Args:
             db: Sessão do banco
             user_id: ID do usuário
-        
+
         Returns:
             Número de notificações criadas
         """
         # Buscar pagamentos pendentes ou atrasados
-        payments = db.query(Payment).filter(
-            Payment.user_id == user_id,
-            Payment.status.in_(["pending", "overdue"])
-        ).all()
-        
+        payments = (
+            db.query(Payment)
+            .filter(Payment.user_id == user_id, Payment.status.in_(["pending", "overdue"]))
+            .all()
+        )
+
         notifications_created = 0
         current_date = datetime.now().date()
-        
+
         for payment in payments:
             days_until_due = (payment.due_date - current_date).days
-            
+
             # Verificar se deve enviar lembrete
             reminder_type = PaymentCalculationService.should_send_payment_reminder(payment.due_date)
-            
+
             if reminder_type:
                 # Verificar se já não existe notificação similar recente
-                from app.src.notifications.models import Notification
                 from datetime import timedelta
-                
-                recent_notification = db.query(Notification).filter(
-                    Notification.user_id == user_id,
-                    Notification.type == "reminder",
-                    Notification.related_id == str(payment.id),
-                    Notification.created_at >= datetime.utcnow() - timedelta(hours=12)
-                ).first()
-                
+
+                from app.src.notifications.models import Notification
+
+                recent_notification = (
+                    db.query(Notification)
+                    .filter(
+                        Notification.user_id == user_id,
+                        Notification.type == "reminder",
+                        Notification.related_id == str(payment.id),
+                        Notification.created_at >= datetime.utcnow() - timedelta(hours=12),
+                    )
+                    .first()
+                )
+
                 if not recent_notification:
                     NotificationService.create_payment_reminder_notification(
-                        db=db,
-                        payment=payment,
-                        days_until_due=days_until_due
+                        db=db, payment=payment, days_until_due=days_until_due
                     )
                     notifications_created += 1
-        
+
         return notifications_created
 
     @staticmethod
     def process_overdue_payment_notifications(db: Session, user_id: int) -> int:
         """
         Processa notificações de pagamentos atrasados
-        
+
         Args:
             db: Sessão do banco
             user_id: ID do usuário
-        
+
         Returns:
             Número de notificações criadas
         """
         # Buscar pagamentos atrasados
-        payments = db.query(Payment).filter(
-            Payment.user_id == user_id,
-            Payment.status == "overdue"
-        ).all()
-        
+        payments = (
+            db.query(Payment).filter(Payment.user_id == user_id, Payment.status == "overdue").all()
+        )
+
         notifications_created = 0
-        
+
         for payment in payments:
             days_overdue = PaymentCalculationService.calculate_days_overdue(payment.due_date)
-            
+
             if days_overdue > 0:
                 # Enviar notificação a cada 7 dias de atraso
                 if days_overdue % 7 == 0 or days_overdue == 1:
                     # Verificar se já não existe notificação similar recente
-                    from app.src.notifications.models import Notification
                     from datetime import timedelta
-                    
-                    recent_notification = db.query(Notification).filter(
-                        Notification.user_id == user_id,
-                        Notification.type == "payment_overdue",
-                        Notification.related_id == str(payment.id),
-                        Notification.created_at >= datetime.utcnow() - timedelta(days=3)
-                    ).first()
-                    
+
+                    from app.src.notifications.models import Notification
+
+                    recent_notification = (
+                        db.query(Notification)
+                        .filter(
+                            Notification.user_id == user_id,
+                            Notification.type == "payment_overdue",
+                            Notification.related_id == str(payment.id),
+                            Notification.created_at >= datetime.utcnow() - timedelta(days=3),
+                        )
+                        .first()
+                    )
+
                     if not recent_notification:
                         # Recalcular valores com multa e juros
                         from app.src.contracts.models import Contract
-                        contract = db.query(Contract).filter(Contract.id == payment.contract_id).first()
-                        
+
+                        contract = (
+                            db.query(Contract).filter(Contract.id == payment.contract_id).first()
+                        )
+
                         if contract:
-                            _, _, total_addition = PaymentCalculationService.calculate_fine_and_interest(
+                            (
+                                _,
+                                _,
+                                total_addition,
+                            ) = PaymentCalculationService.calculate_fine_and_interest(
                                 payment.amount,
                                 contract.fine_rate,
                                 contract.interest_rate,
-                                days_overdue
+                                days_overdue,
                             )
                             total_amount = payment.amount + total_addition
-                            
+
                             NotificationService.create_payment_overdue_notification(
                                 db=db,
                                 payment=payment,
                                 days_overdue=days_overdue,
-                                total_amount=total_amount
+                                total_amount=total_amount,
                             )
                             notifications_created += 1
-        
+
         return notifications_created
 
     @staticmethod
     def update_payment_statuses_automatically(db: Session, user_id: int) -> dict:
         """
         Atualiza automaticamente os status de todos os pagamentos
-        
+
         Args:
             db: Sessão do banco
             user_id: ID do usuário
-        
+
         Returns:
             Dict com contadores de mudanças
         """
         # Buscar todos os pagamentos do usuário
-        payments = db.query(Payment).filter(
-            Payment.user_id == user_id
-        ).all()
-        
+        payments = db.query(Payment).filter(Payment.user_id == user_id).all()
+
         changes = {
             "pending_to_overdue": 0,
             "total_overdue": 0,
             "total_pending": 0,
             "total_paid": 0,
-            "total_partial": 0
+            "total_partial": 0,
         }
-        
+
         current_date = datetime.now().date()
-        
+
         for payment in payments:
             old_status = payment.status
-            
+
             # Determinar novo status
             new_status = PaymentCalculationService.determine_payment_status(
                 payment.due_date,
                 payment.payment_date,
                 payment.amount if payment.payment_date else None,
-                payment.total_amount
+                payment.total_amount,
             )
-            
+
             # Atualizar se mudou
             if old_status != new_status:
                 payment.status = new_status
-                
+
                 if old_status == "pending" and new_status == "overdue":
                     changes["pending_to_overdue"] += 1
-            
+
             # Contabilizar
             changes[f"total_{new_status}"] += 1
-        
+
         db.commit()
-        
+
         return changes
 
     @classmethod
     def run_all_background_tasks(cls, db: Session, user_id: int) -> dict:
         """
         Executa todas as tarefas de background
-        
+
         Args:
             db: Sessão do banco
             user_id: ID do usuário
-        
+
         Returns:
             Dict com resultados de todas as tarefas
         """
         results = {}
-        
+
         # Atualizar status de pagamentos
         results["payment_status_changes"] = cls.update_payment_statuses_automatically(db, user_id)
-        
+
         # Processar notificações de contratos vencendo
         results["contract_notifications"] = cls.process_contract_expiring_notifications(db, user_id)
-        
+
         # Processar lembretes de pagamento
         results["payment_reminders"] = cls.process_payment_reminders(db, user_id)
-        
+
         # Processar notificações de atraso
         results["overdue_notifications"] = cls.process_overdue_payment_notifications(db, user_id)
-        
+
         return results

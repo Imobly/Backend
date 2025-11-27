@@ -30,6 +30,7 @@ class ContractCreate(ContractBase):
 
 class ContractCreateInternal(ContractBase):
     """Schema interno para criação com user_id"""
+
     user_id: int
 
 

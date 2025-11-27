@@ -54,16 +54,19 @@ class property_controller:
             raise HTTPException(status_code=404, detail="Imóvel não encontrado")
         return property_obj
 
-    def create_property(self, db: Session, user_id: int, property_data: PropertyCreate) -> PropertyResponse:
+    def create_property(
+        self, db: Session, user_id: int, property_data: PropertyCreate
+    ) -> PropertyResponse:
         """Criar nova propriedade"""
         # Adiciona user_id ao objeto Pydantic
         property_dict = property_data.model_dump()
         property_dict["user_id"] = user_id
-        
+
         # Cria um novo objeto Pydantic com user_id incluído
         from app.src.properties.schemas import PropertyCreateInternal
+
         property_with_user = PropertyCreateInternal(**property_dict)
-        
+
         return self.repository.create(db, obj_in=property_with_user)
 
     def update_property(
@@ -81,7 +84,7 @@ class property_controller:
         property_obj = self.repository.get_by_id_and_user(db, property_id, user_id)
         if not property_obj:
             raise HTTPException(status_code=404, detail="Imóvel não encontrado")
-        
+
         success = self.repository.delete(db, id=property_id)
         if not success:
             raise HTTPException(status_code=404, detail="Imóvel não encontrado")

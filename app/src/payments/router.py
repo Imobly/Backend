@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user_id_from_token
-from app.core.payment_service import PaymentCalculationService
 from app.core.notification_service import NotificationService
+from app.core.payment_service import PaymentCalculationService
 from app.db.session import get_db
 from app.src.contracts.models import Contract
 
@@ -17,7 +17,7 @@ from .schemas import (
     PaymentCreate,
     PaymentRegisterRequest,
     PaymentResponse,
-    PaymentUpdate
+    PaymentUpdate,
 )
 
 router = APIRouter()
@@ -27,11 +27,11 @@ router = APIRouter()
 async def calculate_payment_values(
     request: PaymentCalculateRequest,
     user_id: int = Depends(get_current_user_id_from_token),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Calcula automaticamente valores de pagamento com multa e juros
-    
+
     Este endpoint calcula:
     - Multa (aplicada uma vez)
     - Juros (proporcional aos dias de atraso)
@@ -40,25 +40,23 @@ async def calculate_payment_values(
     - Valor restante (se pagamento parcial)
     """
     # Buscar contrato
-    contract = db.query(Contract).filter(
-        Contract.id == request.contract_id,
-        Contract.user_id == user_id
-    ).first()
-    
+    contract = (
+        db.query(Contract)
+        .filter(Contract.id == request.contract_id, Contract.user_id == user_id)
+        .first()
+    )
+
     if not contract:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Contract not found"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contract not found")
+
     # Calcular valores
     calculation = PaymentCalculationService.calculate_payment_values(
         contract=contract,
         due_date=request.due_date,
         payment_date=request.payment_date,
-        paid_amount=request.paid_amount
+        paid_amount=request.paid_amount,
     )
-    
+
     return PaymentCalculateResponse(**calculation)
 
 
@@ -66,36 +64,34 @@ async def calculate_payment_values(
 async def register_payment(
     request: PaymentRegisterRequest,
     user_id: int = Depends(get_current_user_id_from_token),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Registra pagamento com cálculo automático de multa e juros
-    
+
     Este endpoint:
     - Calcula automaticamente multa e juros baseado no contrato
     - Determina o status automaticamente
     - Cria notificação de pagamento recebido
     """
     # Buscar contrato
-    contract = db.query(Contract).filter(
-        Contract.id == request.contract_id,
-        Contract.user_id == user_id
-    ).first()
-    
+    contract = (
+        db.query(Contract)
+        .filter(Contract.id == request.contract_id, Contract.user_id == user_id)
+        .first()
+    )
+
     if not contract:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Contract not found"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contract not found")
+
     # Calcular valores automaticamente
     calculation = PaymentCalculationService.calculate_payment_values(
         contract=contract,
         due_date=request.due_date,
         payment_date=request.payment_date,
-        paid_amount=request.paid_amount
+        paid_amount=request.paid_amount,
     )
-    
+
     # Criar pagamento com valores calculados
     payment_data = PaymentCreate(
         property_id=contract.property_id,
@@ -108,14 +104,14 @@ async def register_payment(
         total_amount=calculation["total_expected"],
         status=calculation["status"],
         payment_method=request.payment_method,
-        description=request.description
+        description=request.description,
     )
-    
+
     payment = payment_controller(db).create_payment(db, user_id, payment_data)
-    
+
     # Criar notificação de pagamento recebido
     NotificationService.create_payment_received_notification(db, payment)
-    
+
     return payment
 
 
@@ -123,7 +119,7 @@ async def register_payment(
 async def create_payment(
     payment: PaymentCreate,
     user_id: int = Depends(get_current_user_id_from_token),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Criar novo pagamento"""
     return payment_controller(db).create_payment(db, user_id, payment)
@@ -134,7 +130,7 @@ async def list_payments(
     skip: int = 0,
     limit: int = 100,
     user_id: int = Depends(get_current_user_id_from_token),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Listar pagamentos"""
     return payment_controller(db).get_payments(db, user_id, skip=skip, limit=limit)
@@ -144,7 +140,7 @@ async def list_payments(
 async def get_payment(
     payment_id: int,
     user_id: int = Depends(get_current_user_id_from_token),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Obter pagamento por ID"""
     return payment_controller(db).get_payment_by_id(db, payment_id, user_id)
@@ -155,7 +151,7 @@ async def update_payment(
     payment_id: int,
     payment_update: PaymentUpdate,
     user_id: int = Depends(get_current_user_id_from_token),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Atualizar pagamento"""
     return payment_controller(db).update_payment(db, payment_id, user_id, payment_update)
@@ -165,7 +161,7 @@ async def update_payment(
 async def delete_payment(
     payment_id: int,
     user_id: int = Depends(get_current_user_id_from_token),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Deletar pagamento"""
     return payment_controller(db).delete_payment(db, payment_id, user_id)

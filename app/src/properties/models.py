@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import JSON, Boolean, Column, DateTime, Integer, Numeric, String, Text, ForeignKey
+from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base
@@ -27,7 +27,12 @@ class Property(Base):
     description = Column(Text)
     images = Column(JSON)  # Array de URLs das imagens
     is_residential = Column(Boolean, default=True)
-    tenant_id = Column(Integer, ForeignKey("tenants.id", name="fk_property_tenant_id", ondelete="SET NULL"), nullable=True, index=True)
+    tenant_id = Column(
+        Integer,
+        ForeignKey("tenants.id", name="fk_property_tenant_id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
