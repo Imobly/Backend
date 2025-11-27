@@ -6,17 +6,20 @@
 
 Configure estas variáveis no painel do Render (Settings > Environment):
 
-#### 1. **Banco de Dados**
+#### 1. **Banco de Dados (Supabase)**
 ```
 DATABASE_URL
 ```
-- **Tipo**: Database URL do PostgreSQL
-- **Valor**: Será gerado automaticamente quando você criar o PostgreSQL Database no Render
-- **Formato**: `postgresql://user:password@hostname:5432/database_name`
+- **Tipo**: Database URL do PostgreSQL (Supabase)
+- **Valor**: Connection String do Supabase (Connection Pooling)
+- **Formato**: `postgresql://postgres.yyeldattafklyutbbnhu:[PASSWORD]@aws-0-us-west-2.pooler.supabase.com:5432/postgres`
 - **Como obter**: 
-  1. Crie um PostgreSQL Database no Render (Free tier)
-  2. Copie o "Internal Database URL" ou "External Database URL"
-  3. Cole em DATABASE_URL
+  1. Acesse: https://supabase.com/dashboard
+  2. Vá em: Project → Database → Connection String
+  3. Copie o "Connection Pooling" (porta 5432)
+  4. Substitua `[YOUR-PASSWORD]` pela senha real
+  5. Cole em DATABASE_URL no Render
+- **⚠️ Use Connection Pooling (porta 5432) - não Direct Connection (6543)**
 
 #### 2. **Segurança - JWT**
 ```
@@ -121,25 +124,27 @@ uvicorn app.main:app --host 0.0.0.0 --port $PORT
 
 ---
 
-## 📊 Criar Banco de Dados PostgreSQL no Render
+## 📊 Banco de Dados (Supabase)
 
-1. **No Dashboard do Render**:
-   - Clique em "New +" → "PostgreSQL"
-   - **Name**: `imobly-db` (ou outro nome)
-   - **Database**: `imovel_gestao`
-   - **User**: `imovel_user` (gerado automaticamente)
-   - **Region**: Mesma do Web Service (ex: Oregon)
-   - **Plan**: `Free`
+✅ **Você já tem o banco configurado no Supabase!**
 
-2. **Após criação**:
-   - Copie o **Internal Database URL** (mais rápido)
-   - Cole na variável `DATABASE_URL` do Web Service
+### Connection String (para Render):
+```
+postgresql://postgres.yyeldattafklyutbbnhu:[YOUR_PASSWORD]@aws-0-us-west-2.pooler.supabase.com:5432/postgres
+```
 
-3. **Rodar Migrações** (após primeiro deploy):
+### Próximos Passos:
+
+1. **Rodar Migrações**:
    ```bash
-   # No Shell do Render ou localmente apontando para o banco
+   # Local (com .env configurado)
+   alembic upgrade head
+   
+   # Ou no Render Shell (após deploy)
    alembic upgrade head
    ```
+
+2. **Consulte SUPABASE_SETUP.md** para detalhes completos
 
 ---
 
@@ -177,12 +182,10 @@ AUTH_API_URL
 
 ## 🔧 Passo a Passo Completo
 
-### 1. Criar PostgreSQL Database
-- New + → PostgreSQL
-- Configure e aguarde provisionamento
-- Copie Internal Database URL
+### 1. ~~Criar PostgreSQL Database~~ ✅ Já feito (Supabase)
+Você já tem o banco no Supabase. Pule para o passo 2.
 
-### 2. Criar Web Service
+### 2. Criar Web Service no Render
 - New + → Web Service
 - Conecte seu repositório GitHub
 - Branch: `main` (ou `develop_costta`)
