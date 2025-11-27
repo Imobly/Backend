@@ -13,8 +13,6 @@ from sqlalchemy.pool import StaticPool
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
-from app.src.auth.repository import UserRepository
-from app.src.auth.schemas import UserCreate
 
 # ============ PROTEÇÃO CONTRA USO DE BANCO DE PRODUÇÃO ============
 
@@ -265,75 +263,5 @@ def sample_expense_data():
 # ============ Authentication Fixtures ============
 
 
-@pytest.fixture
-def sample_user_data():
-    """Sample user data for tests"""
-    return {
-        "email": "testuser@example.com",
-        "username": "testuser",
-        "password": "senha123",
-        "full_name": "Test User",
-    }
-
-
-@pytest.fixture
-def sample_user(db: Session, sample_user_data):
-    """Create a sample user in the database"""
-    user_repo = UserRepository()
-    user_create = UserCreate(**sample_user_data)
-    user = user_repo.create_user(db, user_create)
-    return {
-        "id": user.id,
-        "email": user.email,
-        "username": user.username,
-        "full_name": user.full_name,
-    }
-
-
-@pytest.fixture
-def auth_headers(client: TestClient, sample_user):
-    """Get authentication headers with valid token"""
-    login_data = {"username": sample_user["username"], "password": "senha123"}
-    response = client.post("/api/v1/auth/login", json=login_data)
-    token = response.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
-
-
-@pytest.fixture
-def superuser_data():
-    """Sample superuser data for tests"""
-    return {
-        "email": "admin@example.com",
-        "username": "admin",
-        "password": "admin123",
-        "full_name": "Admin User",
-    }
-
-
-@pytest.fixture
-def superuser(db: Session, superuser_data):
-    """Create a superuser in the database"""
-    user_repo = UserRepository()
-    user_create = UserCreate(**superuser_data)
-    user = user_repo.create_user(db, user_create)
-
-    # Set as superuser
-    user.is_superuser = True
-    db.commit()
-    db.refresh(user)
-
-    return {
-        "id": user.id,
-        "email": user.email,
-        "username": user.username,
-        "full_name": user.full_name,
-    }
-
-
-@pytest.fixture
-def superuser_headers(client: TestClient, superuser):
-    """Get authentication headers for superuser"""
-    login_data = {"username": superuser["username"], "password": "admin123"}
-    response = client.post("/api/v1/auth/login", json=login_data)
-    token = response.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
+# NOTE: Auth fixtures removed - authentication managed by separate Auth-api service
+# Old fixtures: sample_user_data, sample_user, auth_headers, superuser_data, superuser, superuser_headers
