@@ -3,7 +3,7 @@ FastAPI dependencies para autenticação com Auth-api externo
 """
 from typing import Optional
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.auth_client import get_current_user_id

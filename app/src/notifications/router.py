@@ -44,7 +44,7 @@ async def list_notifications(
     query = db.query(Notification).filter(Notification.user_id == user_id)
 
     if unread_only:
-        query = query.filter(Notification.read_status == False)
+        query = query.filter(Notification.read_status.is_(False))
 
     if type:
         query = query.filter(Notification.type == type)
@@ -74,7 +74,7 @@ async def count_unread_notifications(
     """Contar notificações não lidas"""
     count = (
         db.query(Notification)
-        .filter(Notification.user_id == user_id, Notification.read_status == False)
+        .filter(Notification.user_id == user_id, Notification.read_status.is_(False))
         .count()
     )
 

@@ -2,11 +2,10 @@
 Serviço centralizado para gerenciamento de uploads de arquivos
 Suporta imagens e documentos PDF
 """
-import os
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import List, Literal, Optional
+from typing import List, Literal
 
 from fastapi import HTTPException, UploadFile, status
 

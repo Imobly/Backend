@@ -8,16 +8,12 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_user_id_from_token
 from app.db.session import get_db
 from app.src.contracts.models import Contract
-from app.src.contracts.repository import ContractRepository
 from app.src.expenses.models import Expense
-from app.src.expenses.repository import ExpenseRepository
-from app.src.notifications.repository import NotificationRepository
 from app.src.payments.models import Payment
 from app.src.payments.repository import PaymentRepository
 from app.src.properties.models import Property
 from app.src.properties.repository import PropertyRepository
 from app.src.tenants.models import Tenant
-from app.src.tenants.repository import TenantRepository
 
 router = APIRouter()
 
@@ -27,10 +23,6 @@ async def get_dashboard_stats(
     db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id_from_token)
 ):
     """Obter estatísticas básicas do dashboard (filtrado por usuário)"""
-
-    property_repo = PropertyRepository(db)
-    tenant_repo = TenantRepository(db)
-    contract_repo = ContractRepository(db)
 
     # Contar propriedades do usuário
     total_properties = (
@@ -70,8 +62,6 @@ async def get_dashboard_summary(
 ):
     """Obter resumo completo do dashboard (filtrado por usuário)"""
 
-    property_repo = PropertyRepository(db)
-    contract_repo = ContractRepository(db)
     payment_repo = PaymentRepository(db)
 
     # Contadores básicos

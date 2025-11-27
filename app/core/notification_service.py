@@ -1,7 +1,7 @@
 """
 Serviço para gerenciamento de notificações inteligentes
 """
-from datetime import date, datetime
+from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
 from uuid import uuid4
@@ -258,7 +258,7 @@ class NotificationService:
         """
         return (
             db.query(Notification)
-            .filter(Notification.user_id == user_id, Notification.read_status == False)
+            .filter(Notification.user_id == user_id, Notification.read_status.is_(False))
             .order_by(Notification.date.desc())
             .limit(limit)
             .all()
@@ -329,7 +329,7 @@ class NotificationService:
         """
         count = (
             db.query(Notification)
-            .filter(Notification.user_id == user_id, Notification.read_status == False)
+            .filter(Notification.user_id == user_id, Notification.read_status.is_(False))
             .update({"read_status": True, "updated_at": datetime.utcnow()})
         )
 
@@ -358,7 +358,7 @@ class NotificationService:
             .filter(
                 Notification.user_id == user_id,
                 Notification.created_at < cutoff_date,
-                Notification.read_status == True,  # Apenas lidas
+                Notification.read_status.is_(True),  # Apenas lidas
             )
             .delete()
         )

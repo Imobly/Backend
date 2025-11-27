@@ -10,7 +10,6 @@ from app.db.session import get_db
 from app.src.contracts.models import Contract
 
 from .controller import payment_controller
-from .models import Payment
 from .schemas import (
     PaymentCalculateRequest,
     PaymentCalculateResponse,

@@ -20,7 +20,6 @@ async def create_expense(
     db: Session = Depends(get_db),
 ):
     """Criar nova despesa"""
-    expense_repo = get_expense_repository(db)
     # Criar despesa com user_id do token
     expense_data = expense.model_dump()
     expense_data["user_id"] = user_id
@@ -47,7 +46,6 @@ async def list_expenses(
     db: Session = Depends(get_db),
 ):
     """Listar despesas do usuário autenticado"""
-    expense_repo = get_expense_repository(db)
 
     # Buscar apenas despesas do usuário autenticado (multi-tenancy)
     from .models import Expense

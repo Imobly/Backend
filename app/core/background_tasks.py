@@ -1,8 +1,7 @@
 """
 Background tasks para processar notificações e status automaticamente
 """
-from datetime import date, datetime
-from typing import List
+from datetime import datetime
 
 from sqlalchemy.orm import Session
 
@@ -216,8 +215,6 @@ class BackgroundTasksService:
             "total_paid": 0,
             "total_partial": 0,
         }
-
-        current_date = datetime.now().date()
 
         for payment in payments:
             old_status = payment.status
