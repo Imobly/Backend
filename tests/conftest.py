@@ -131,9 +131,10 @@ def client(db: Session) -> Generator[TestClient, None, None]:
 
     # Limpar os event handlers do startup para evitar create_tables no banco errado
     app.router.on_startup = []
-    
+
     # Garantir que o diretório de uploads existe (necessário para StaticFiles)
     from app.core.config import settings
+
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 
     def override_get_db():
