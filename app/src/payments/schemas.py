@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class PaymentBase(BaseModel):
+    user_id: Optional[int] = None  # Optional for backwards compatibility, set from token in API
     property_id: int
     tenant_id: int
     contract_id: int

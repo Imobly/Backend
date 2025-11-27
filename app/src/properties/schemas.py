@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class PropertyBase(BaseModel):
+    user_id: Optional[int] = None  # Optional for backwards compatibility, set from token in API
     name: str = Field(..., min_length=1, max_length=255)
     address: str = Field(..., min_length=1)
     neighborhood: str = Field(..., min_length=1, max_length=100)

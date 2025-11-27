@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, validator
 
 
 class ContractBase(BaseModel):
+    user_id: Optional[int] = None  # Optional for backwards compatibility, set from token in API
     title: str = Field(..., min_length=1, max_length=255)
     property_id: int
     tenant_id: int

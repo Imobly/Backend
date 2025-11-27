@@ -19,6 +19,7 @@ class ExpenseDocument(BaseModel):
 
 
 class ExpenseBase(BaseModel):
+    user_id: Optional[int] = None  # Optional for backwards compatibility, set from token in API
     type: str = Field(..., pattern="^(expense|maintenance)$")
     category: str = Field(..., min_length=1, max_length=100)
     description: str = Field(..., min_length=1)

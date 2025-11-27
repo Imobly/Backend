@@ -20,6 +20,7 @@ class TenantDocument(BaseModel):
 
 
 class TenantBase(BaseModel):
+    user_id: Optional[int] = None  # Optional for backwards compatibility, set from token in API
     name: str = Field(..., min_length=1, max_length=255)
     email: EmailStr
     phone: str = Field(..., min_length=1, max_length=20)

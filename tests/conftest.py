@@ -152,6 +152,7 @@ def client(db: Session) -> Generator[TestClient, None, None]:
 def sample_property_data():
     """Sample property data for tests"""
     return {
+        "user_id": 1,  # Required for multi-tenancy
         "name": "Test Property",
         "address": "Test Address, 123",
         "neighborhood": "Test Neighborhood",
@@ -174,6 +175,7 @@ def sample_property_data():
 def sample_tenant_data():
     """Sample tenant data for tests"""
     return {
+        "user_id": 1,  # Required for multi-tenancy
         "name": "Test Tenant",
         "email": "test@example.com",
         "phone": "+5511999999999",
@@ -203,6 +205,7 @@ def sample_contract_data():
     from datetime import date
 
     return {
+        "user_id": 1,  # Required for multi-tenancy
         "title": "Test Contract",
         "property_id": 1,
         "tenant_id": 1,
@@ -222,6 +225,7 @@ def sample_payment_data():
     from datetime import date
 
     return {
+        "user_id": 1,  # Required for multi-tenancy
         "property_id": 1,
         "tenant_id": 1,
         "contract_id": 1,
@@ -239,6 +243,7 @@ def sample_expense_data():
     from datetime import date
 
     return {
+        "user_id": 1,  # Required for multi-tenancy
         "property_id": 1,
         "type": "expense",
         "description": "Test Expense",
