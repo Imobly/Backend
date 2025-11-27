@@ -124,19 +124,19 @@ class PaymentCalculationService:
         Returns:
             Dict com todos os valores calculados
         """
-        base_amount = contract.rent
+        base_amount = Decimal(str(contract.rent))
         days_overdue = cls.calculate_days_overdue(due_date, payment_date)
 
         # Calcular multa e juros
         fine, interest, total_addition = cls.calculate_fine_and_interest(
-            base_amount, contract.fine_rate, contract.interest_rate, days_overdue
+            base_amount, Decimal(str(contract.fine_rate)), Decimal(str(contract.interest_rate)), days_overdue
         )
 
         # Valor total esperado
         total_expected = base_amount + total_addition
 
         # Determinar status
-        status = cls.determine_payment_status(due_date, payment_date, paid_amount, total_expected)
+        status = cls.determine_payment_status(due_date, payment_date, paid_amount, Decimal(str(total_expected)))
 
         return {
             "base_amount": base_amount,
@@ -148,7 +148,7 @@ class PaymentCalculationService:
             "status": status,
             "paid_amount": paid_amount if paid_amount else Decimal("0"),
             "remaining_amount": max(
-                Decimal("0"), total_expected - (paid_amount if paid_amount else Decimal("0"))
+                Decimal("0"), Decimal(str(total_expected)) - (paid_amount if paid_amount else Decimal("0"))
             ),
         }
 
@@ -206,7 +206,7 @@ class PaymentCalculationService:
         if contract.end_date.day < contract.start_date.day:
             total_months -= 1
 
-        return max(0, total_months)
+        return int(max(0, total_months))
 
     @staticmethod
     def get_days_until_contract_end(contract: Contract) -> int:
@@ -221,7 +221,7 @@ class PaymentCalculationService:
         """
         current_date = datetime.now().date()
         delta = contract.end_date - current_date
-        return delta.days
+        return int(delta.days)
 
     @staticmethod
     def should_send_contract_expiring_notification(contract: Contract) -> Optional[str]:
@@ -291,15 +291,21 @@ class PaymentCalculationService:
         if not payment:
             raise ValueError(f"Payment {payment_id} not found")
 
+        # Converter Column para tipos Python
+        due_date_val = payment.due_date if isinstance(payment.due_date, date) else payment.due_date
+        payment_date_val = payment.payment_date if payment.payment_date is None or isinstance(payment.payment_date, date) else payment.payment_date
+        amount_val = Decimal(str(payment.amount)) if payment.payment_date else None
+        total_val = Decimal(str(payment.total_amount))
+        
         new_status = cls.determine_payment_status(
-            payment.due_date,
-            payment.payment_date,
-            payment.amount if payment.payment_date else None,
-            payment.total_amount,
+            due_date_val,  # type: ignore[arg-type]
+            payment_date_val,  # type: ignore[arg-type]
+            amount_val,
+            total_val,
         )
 
         if payment.status != new_status:
-            payment.status = new_status
+            setattr(payment, 'status', new_status)
             db.commit()
             db.refresh(payment)
 

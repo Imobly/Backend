@@ -95,7 +95,7 @@ class NotificationService:
 
         return cls.create_notification(
             db=db,
-            user_id=contract.user_id,
+            user_id=int(contract.user_id),
             type="contract_expiring",
             title=title,
             message=message,
@@ -142,7 +142,7 @@ class NotificationService:
 
         return cls.create_notification(
             db=db,
-            user_id=payment.user_id,
+            user_id=int(payment.user_id),
             type="reminder",
             title=title,
             message=message,
@@ -190,7 +190,7 @@ class NotificationService:
 
         return cls.create_notification(
             db=db,
-            user_id=payment.user_id,
+            user_id=int(payment.user_id),
             type="payment_overdue",
             title=title,
             message=message,
@@ -233,7 +233,7 @@ class NotificationService:
 
         return cls.create_notification(
             db=db,
-            user_id=payment.user_id,
+            user_id=int(payment.user_id),
             type="system_alert",
             title=title,
             message=message,
@@ -308,8 +308,8 @@ class NotificationService:
         )
 
         if notification:
-            notification.read_status = True
-            notification.updated_at = datetime.utcnow()
+            setattr(notification, 'read_status', True)
+            setattr(notification, 'updated_at', datetime.utcnow())
             db.commit()
             db.refresh(notification)
 

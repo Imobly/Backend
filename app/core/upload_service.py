@@ -60,6 +60,13 @@ class UploadService:
         Returns:
             dict com informações do arquivo salvo {filename, url, size, type}
         """
+        # Validar nome do arquivo
+        if not file.filename:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Nome do arquivo não pode ser vazio"
+            )
+        
         # Validar extensão
         if not self._validate_file_extension(file.filename, allowed_types):
             allowed_exts = (
@@ -91,6 +98,7 @@ class UploadService:
         upload_folder.mkdir(parents=True, exist_ok=True)
 
         # Gerar nome único e salvar arquivo
+        assert file.filename is not None  # já verificado acima
         unique_filename = self._generate_unique_filename(file.filename)
         file_path = upload_folder / unique_filename
 

@@ -1,7 +1,8 @@
 """
 Background tasks para processar notificações e status automaticamente
 """
-from datetime import datetime
+from datetime import datetime, date
+from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
@@ -94,7 +95,8 @@ class BackgroundTasksService:
             days_until_due = (payment.due_date - current_date).days
 
             # Verificar se deve enviar lembrete
-            reminder_type = PaymentCalculationService.should_send_payment_reminder(payment.due_date)
+            due_date_val = payment.due_date if isinstance(payment.due_date, date) else payment.due_date
+            reminder_type = PaymentCalculationService.should_send_payment_reminder(due_date_val)  # type: ignore[arg-type]
 
             if reminder_type:
                 # Verificar se já não existe notificação similar recente
@@ -141,7 +143,8 @@ class BackgroundTasksService:
         notifications_created = 0
 
         for payment in payments:
-            days_overdue = PaymentCalculationService.calculate_days_overdue(payment.due_date)
+            due_date_val = payment.due_date if isinstance(payment.due_date, date) else payment.due_date
+            days_overdue = PaymentCalculationService.calculate_days_overdue(due_date_val)  # type: ignore[arg-type]
 
             if days_overdue > 0:
                 # Enviar notificação a cada 7 dias de atraso
@@ -176,18 +179,18 @@ class BackgroundTasksService:
                                 _,
                                 total_addition,
                             ) = PaymentCalculationService.calculate_fine_and_interest(
-                                payment.amount,
-                                contract.fine_rate,
-                                contract.interest_rate,
+                                Decimal(str(payment.amount)),
+                                Decimal(str(contract.fine_rate)),
+                                Decimal(str(contract.interest_rate)),
                                 days_overdue,
                             )
-                            total_amount = payment.amount + total_addition
+                            total_amount = Decimal(str(payment.amount)) + total_addition
 
                             NotificationService.create_payment_overdue_notification(
                                 db=db,
                                 payment=payment,
                                 days_overdue=days_overdue,
-                                total_amount=total_amount,
+                                total_amount=Decimal(str(total_amount)),
                             )
                             notifications_created += 1
 
@@ -219,23 +222,30 @@ class BackgroundTasksService:
         for payment in payments:
             old_status = payment.status
 
+            # Converter Column para tipos Python
+            due_date_val = payment.due_date if isinstance(payment.due_date, date) else payment.due_date
+            payment_date_val = payment.payment_date if payment.payment_date is None or isinstance(payment.payment_date, date) else payment.payment_date
+            amount_val = Decimal(str(payment.amount)) if payment.payment_date else None
+            total_val = Decimal(str(payment.total_amount))
+            
             # Determinar novo status
             new_status = PaymentCalculationService.determine_payment_status(
-                payment.due_date,
-                payment.payment_date,
-                payment.amount if payment.payment_date else None,
-                payment.total_amount,
+                due_date_val,  # type: ignore[arg-type]
+                payment_date_val,  # type: ignore[arg-type]
+                amount_val,
+                total_val,
             )
 
             # Atualizar se mudou
             if old_status != new_status:
-                payment.status = new_status
+                setattr(payment, 'status', new_status)
 
                 if old_status == "pending" and new_status == "overdue":
                     changes["pending_to_overdue"] += 1
 
             # Contabilizar
-            changes[f"total_{new_status}"] += 1
+            key = f"total_{new_status}"
+            changes[key] = changes.get(key, 0) + 1
 
         db.commit()
 
@@ -253,7 +263,7 @@ class BackgroundTasksService:
         Returns:
             Dict com resultados de todas as tarefas
         """
-        results = {}
+        results: dict = {}
 
         # Atualizar status de pagamentos
         results["payment_status_changes"] = cls.update_payment_statuses_automatically(db, user_id)
