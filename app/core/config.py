@@ -10,14 +10,6 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
 
-    # CORS Settings
-    BACKEND_CORS_ORIGINS: List[str] = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        # Adicione URLs de produção aqui quando necessário
-    ]
-
     # Database Settings
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL", "postgresql://postgres:admin123@postgres:5432/imovel_gestao"
@@ -39,14 +31,15 @@ class Settings(BaseSettings):
     PORT: int = 8000
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
 
-    # CORS Settings
-    CORS_ORIGINS: list = [
+    # CORS Settings - URLs permitidas para acessar a API
+    BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:3001",
         "http://localhost:5173",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:3001",
         "http://127.0.0.1:5173",
+        # Adicione URLs de produção aqui quando necessário
     ]
 
     # File Upload Settings
