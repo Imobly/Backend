@@ -3,20 +3,18 @@
 ## ✅ Pré-requisitos Completos
 
 ✔️ Banco Supabase configurado  
-✔️ Senha do banco: `Imobly.1501`  
-✔️ SECRET_KEY gerada: `Rys8_HKBXH9stpwcJC6GcT_SSbXxP_a1MdcggPjKUz4`  
 ✔️ Código pronto para deploy (branch `develop_costta` ou `main`)
 
 ---
 
 ## 📋 Variáveis de Ambiente para o Render
 
-Copie e cole EXATAMENTE estas variáveis no Render Dashboard → Environment:
+Configure estas variáveis no Render Dashboard → Environment:
 
 ```bash
 PYTHON_VERSION=3.11.0
-DATABASE_URL=postgresql://postgres.yyeldattafklyutbbnhu:Imobly.1501@aws-0-us-west-2.pooler.supabase.com:5432/postgres
-SECRET_KEY=Rys8_HKBXH9stpwcJC6GcT_SSbXxP_a1MdcggPjKUz4
+DATABASE_URL=postgresql://postgres.yyeldattafklyutbbnhu:[SUA_SENHA_AQUI]@aws-0-us-west-2.pooler.supabase.com:5432/postgres
+SECRET_KEY=[SERÁ_GERADO_AUTOMATICAMENTE_PELO_RENDER]
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 ENVIRONMENT=production
@@ -27,6 +25,10 @@ API_V1_STR=/api/v1
 HOST=0.0.0.0
 UPLOAD_DIR=/tmp/uploads
 ```
+
+⚠️ **IMPORTANTE**: 
+- Substitua `[SUA_SENHA_AQUI]` pela senha do Supabase
+- SECRET_KEY será gerado automaticamente pelo Render (configurado em render.yaml)
 
 ---
 
