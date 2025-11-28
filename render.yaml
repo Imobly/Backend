@@ -11,17 +11,13 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.0
       - key: DATABASE_URL
-        fromDatabase:
-          name: imobly-db
-          property: connectionString
+        sync: false  # Configure manualmente no Render Dashboard
       - key: SECRET_KEY
         generateValue: true
       - key: ALGORITHM
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: 30
-      - key: CORS_ORIGINS
-        value: https://seu-frontend.com,http://localhost:3000
       - key: ENVIRONMENT
         value: production
       - key: DEBUG
@@ -37,9 +33,8 @@ services:
       - key: UPLOAD_DIR
         value: /tmp/uploads
 
-databases:
-  - name: imobly-db
-    databaseName: imovel_gestao
-    user: imovel_user
-    plan: free
-    region: oregon
+# ⚠️ IMPORTANTE: Configure estas variáveis MANUALMENTE no Render Dashboard:
+# DATABASE_URL: postgresql://postgres.yyeldattafklyutbbnhu:[SUA_SENHA]@aws-0-us-west-2.pooler.supabase.com:5432/postgres
+# SECRET_KEY: (será gerado automaticamente pelo Render)
+#
+# Database hospedado no Supabase - não precisa criar no Render
