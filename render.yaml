@@ -13,7 +13,7 @@ services:
       - key: DATABASE_URL
         sync: false  # Configure manualmente no Render Dashboard
       - key: SECRET_KEY
-        generateValue: true
+        sync: false  # ⚠️ IMPORTANTE: Mesma chave do Auth-API para validar JWT
       - key: ALGORITHM
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
@@ -34,7 +34,12 @@ services:
         value: /tmp/uploads
 
 # ⚠️ IMPORTANTE: Configure estas variáveis MANUALMENTE no Render Dashboard:
+# 
 # DATABASE_URL: postgresql://postgres.yyeldattafklyutbbnhu:[SUA_SENHA]@aws-0-us-west-2.pooler.supabase.com:5432/postgres
-# SECRET_KEY: (será gerado automaticamente pelo Render)
+# 
+# SECRET_KEY: DEVE SER A MESMA nos dois serviços (Backend + Auth-API)
+# 1. Vá no Render Dashboard do Backend que já está rodando
+# 2. Environment → Copie o valor da SECRET_KEY
+# 3. Use essa MESMA chave no Auth-API
 #
 # Database hospedado no Supabase - não precisa criar no Render
