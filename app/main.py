@@ -1,7 +1,8 @@
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.v1.api import api_router
@@ -28,7 +29,30 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
+
+
+# Middleware para capturar erros 500 e adicionar CORS headers
+@app.middleware("http")
+async def catch_exceptions_middleware(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as exc:
+        # Log do erro (em produção, use logging adequado)
+        print(f"❌ Erro não tratado: {exc}")
+        import traceback
+        traceback.print_exc()
+        
+        # Retornar erro 500 com CORS habilitado
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": "Erro interno do servidor"},
+            headers={
+                "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
+                "Access-Control-Allow-Credentials": "true",
+            }
+        )
 
 # Middleware de autenticação global (OPCIONAL - desabilitado por padrão)
 # Para habilitar autenticação obrigatória em todas as rotas (exceto públicas),
