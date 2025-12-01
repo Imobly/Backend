@@ -58,7 +58,8 @@ async def root():
     return {
         "message": f"Bem-vindo ao {settings.PROJECT_NAME}",
         "version": settings.VERSION,
-        "docs": "/docs",
+        "docs": "/api/v1/docs",
+        "redoc": "/api/v1/redoc",
         "api": settings.API_V1_STR,
     }
 

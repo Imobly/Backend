@@ -39,7 +39,10 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
         "http://127.0.0.1:3001",
         "http://127.0.0.1:5173",
-        # Adicione URLs de produção aqui quando necessário
+        # Produção
+        "https://imobly.onrender.com",  # Frontend
+        "https://auth-api-3zxk.onrender.com",  # Auth-API
+        "https://backend-non0.onrender.com",  # Backend (self)
     ]
 
     # File Upload Settings
