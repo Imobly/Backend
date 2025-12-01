@@ -125,10 +125,10 @@ async def create_payment(
     try:
         print(f"🔹 Criando pagamento para user_id: {user_id}")
         print(f"🔹 Dados: {payment.dict()}")
-        
+
         controller = payment_controller(db)
         result = controller.create_payment(db, user_id, payment)
-        
+
         print(f"✅ Pagamento criado com ID: {result.id}")
         return result
     except HTTPException:
@@ -136,10 +136,11 @@ async def create_payment(
     except Exception as e:
         print(f"❌ Erro ao criar pagamento: {e}")
         import traceback
+
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erro ao criar pagamento: {str(e)}"
+            detail=f"Erro ao criar pagamento: {str(e)}",
         )
 
 
@@ -153,26 +154,27 @@ async def list_payments(
     """Listar pagamentos"""
     try:
         print(f"🔹 Listando pagamentos para user_id: {user_id}")
-        
+
         controller = payment_controller(db)
         payments = controller.get_payments(db, user_id, skip=skip, limit=limit)
-        
+
         print(f"✅ Encontrados {len(payments)} pagamentos")
-        
+
         # Debug: verificar todos os pagamentos no banco
         all_payments = db.query(Payment).all()
         print(f"📊 Total de pagamentos no banco: {len(all_payments)}")
         if all_payments:
             print(f"📊 user_ids no banco: {list(set(p.user_id for p in all_payments))}")
-        
+
         return payments if payments else []
     except Exception as e:
         print(f"❌ Erro ao listar pagamentos: {e}")
         import traceback
+
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erro ao listar pagamentos: {str(e)}"
+            detail=f"Erro ao listar pagamentos: {str(e)}",
         )
 
 

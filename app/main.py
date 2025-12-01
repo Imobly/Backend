@@ -42,8 +42,9 @@ async def catch_exceptions_middleware(request: Request, call_next):
         # Log do erro (em produção, use logging adequado)
         print(f"❌ Erro não tratado: {exc}")
         import traceback
+
         traceback.print_exc()
-        
+
         # Retornar erro 500 com CORS habilitado
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -51,8 +52,9 @@ async def catch_exceptions_middleware(request: Request, call_next):
             headers={
                 "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
                 "Access-Control-Allow-Credentials": "true",
-            }
+            },
         )
+
 
 # Middleware de autenticação global (OPCIONAL - desabilitado por padrão)
 # Para habilitar autenticação obrigatória em todas as rotas (exceto públicas),
