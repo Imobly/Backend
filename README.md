@@ -1,159 +1,326 @@
-# Imóvel Gestão - Backend API
+# 🏢 Imobly Backend API
 
-Este é o backend da aplicação de gestão de imóveis, desenvolvido com FastAPI e organizado para funcionar de forma independente do frontend.
+API REST para gestão de propriedades imobiliárias, inquilinos, contratos e pagamentos.
 
-## 🚀 Como executar
+## 🌐 Ambiente de Produção
 
-### Opção 1: Com Docker (Recomendado)
+- **API Backend**: https://backend-non0.onrender.com
+- **API de Autenticação**: https://auth-api-3zxk.onrender.com
+- **Frontend**: https://imobly.onrender.com
+- **Documentação Completa**: https://imobly.github.io/Documentation/
+- **Swagger/OpenAPI**: https://backend-non0.onrender.com/api/v1/docs
 
-1. **Copie o arquivo de configuração:**
-   ```bash
-   cp .env.example .env
-   ```
+---
 
-2. **Execute com Docker Compose:**
-   ```bash
-   docker-compose up --build
-   ```
+## 🚀 Funcionalidades
 
-   Isso irá:
-   - Configurar o banco PostgreSQL automaticamente
-   - Instalar todas as dependências
-   - Executar a API na porta 8000
-   - Configurar auto-reload para desenvolvimento
+### 📋 Gestão de Propriedades
+- ✅ Cadastro, listagem, edição e exclusão de imóveis
+- ✅ Gerenciamento de unidades (apartamentos, salas comerciais)
+- ✅ Suporte para diferentes tipos: apartamento, casa, comercial, studio
+- ✅ Controle de status: vago, ocupado, manutenção, inativo
 
-### Opção 2: Executar localmente
+### 👥 Gestão de Inquilinos
+- ✅ Cadastro completo com CPF/CNPJ
+- ✅ Validação de email e documentos
+- ✅ Histórico de contratos e pagamentos
+- ✅ Status: ativo, inativo
 
-1. **Instale as dependências:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 📝 Gestão de Contratos
+- ✅ Contratos de locação com datas de início e fim
+- ✅ Valores de aluguel, depósito e taxas
+- ✅ Status: ativo, expirado, terminado
+- ✅ Geração automática de parcelas de pagamento
 
-2. **Configure o banco de dados no arquivo .env**
+### 💰 Gestão de Pagamentos
+- ✅ Registro de pagamentos com múltiplos métodos
+- ✅ Cálculo automático de multa e juros por atraso
+- ✅ Status: pendente, pago, atrasado, parcial
+- ✅ Relatórios e histórico de pagamentos
 
-3. **Execute a aplicação:**
-   ```bash
-   python main.py
-   ```
+### 💸 Gestão de Despesas
+- ✅ Registro de despesas relacionadas às propriedades
+- ✅ Categorização por tipo
+- ✅ Anexo de comprovantes
 
-## 📡 API Endpoints
+### 🔔 Notificações
+- ✅ Notificações automáticas de eventos
+- ✅ Alertas de pagamentos próximos ao vencimento
+- ✅ Confirmações de ações realizadas
 
-A API estará disponível em: `http://localhost:8000`
+---
 
-### Documentação automática:
-- **Swagger UI:** http://localhost:8000/docs
-- **ReDoc:** http://localhost:8000/redoc
+## 🛠️ Tecnologias
 
-### Principais endpoints:
+- **Python 3.11**
+- **FastAPI** - Framework web moderno e rápido
+- **SQLAlchemy** - ORM para banco de dados
+- **PostgreSQL** (Produção: Supabase)
+- **JWT** - Autenticação via tokens
+- **Pytest** - Testes automatizados
+- **Docker** - Containerização
 
-#### Propriedades
-- `GET /api/v1/properties` - Listar propriedades
-- `POST /api/v1/properties` - Criar propriedade
-- `GET /api/v1/properties/{id}` - Obter propriedade
-- `PUT /api/v1/properties/{id}` - Atualizar propriedade
-- `DELETE /api/v1/properties/{id}` - Deletar propriedade
+---
 
-#### Inquilinos
-- `GET /api/v1/tenants` - Listar inquilinos
-- `POST /api/v1/tenants` - Criar inquilino
-- `GET /api/v1/tenants/{id}` - Obter inquilino
-- `PUT /api/v1/tenants/{id}` - Atualizar inquilino
-- `DELETE /api/v1/tenants/{id}` - Deletar inquilino
+## 📦 Instalação e Execução Local
 
-## 🔧 Configuração
+### Pré-requisitos
 
-### Variáveis de ambiente (.env)
+- Python 3.11+
+- PostgreSQL (ou Docker)
+- Git
 
-```env
-# Banco de dados
+### 1. Clonar o Repositório
+
+```bash
+git clone https://github.com/Imobly/Backend.git
+cd Backend/Backend
+```
+
+### 2. Criar Ambiente Virtual
+
+**Windows:**
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+```
+
+**Linux/Mac:**
+```bash
+python -m venv venv
+source venv/bin/activate
+```
+
+### 3. Instalar Dependências
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Configurar Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do projeto:
+
+```bash
+# Database (use PostgreSQL local ou Docker)
 DATABASE_URL=postgresql://postgres:admin123@localhost:5432/imovel_gestao
 
-# Segurança
-SECRET_KEY=your-secret-key-here
+# JWT/Security
+SECRET_KEY=sua-secret-key-aqui
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 
-# Servidor
+# Application
+ENVIRONMENT=development
 DEBUG=true
+PROJECT_NAME=Imóvel Gestão API
+VERSION=1.0.0
+API_V1_STR=/api/v1
+
+# Server
 HOST=0.0.0.0
 PORT=8000
 
-# URLs do frontend permitidas
-FRONTEND_URLS=http://localhost:3000,http://127.0.0.1:3000
+# Upload
+UPLOAD_DIR=./uploads
 ```
 
-## 🌐 CORS e Comunicação com Frontend
+### 5. Executar com Docker (Recomendado)
 
-O backend está configurado para permitir requisições do frontend em:
-- `http://localhost:3000` (Next.js padrão)
-- `http://127.0.0.1:3000`
-- `http://localhost:3001`
+```bash
+# Subir banco de dados e aplicação
+docker-compose up --build
 
-Para adicionar novas URLs, modifique a configuração em `app/core/config.py` ou use a variável de ambiente `FRONTEND_URLS`.
-
-## 🗄️ Banco de Dados
-
-### Com Docker
-O docker-compose.yml configura automaticamente:
-- **postgres** (porta 5432) - Banco de PRODUÇÃO (`imovel_gestao`)
-- **postgres-test** (porta 5433) - Banco de TESTES (`imovel_gestao_test`)
-
-### Manual
-1. Instale PostgreSQL
-2. Crie os bancos:
-   ```sql
-   CREATE DATABASE imovel_gestao;        -- Produção
-   CREATE DATABASE imovel_gestao_test;   -- Testes
-   ```
-3. Configure a URL no .env
-
-## 🧪 Testes
-
-### ⚠️ IMPORTANTE: Segurança nos Testes
-
-Os testes **NUNCA** devem rodar no banco de produção! Veja o guia completo: [TESTING_SAFETY.md](TESTING_SAFETY.md)
-
-### Rodar Testes (Forma Segura)
-
-```powershell
-# Windows PowerShell - Script automático
-.\scripts\run_tests_safe.ps1
-
-# Ou manualmente
-$env:TEST_DATABASE_URL = "postgresql://postgres:admin123@localhost:5433/imovel_gestao_test"
-pytest tests/integration/ -v
+# Ou apenas o banco (e rodar app localmente)
+docker-compose up postgres
 ```
 
-### Proteções Implementadas
+### 6. Executar Localmente (sem Docker)
 
-✅ Sistema rejeita testes se `TEST_DATABASE_URL` não estiver definido  
-✅ Sistema rejeita se `TEST_DATABASE_URL` == `DATABASE_URL`  
-✅ Testes rodam em schema isolado (`test_schema`)  
-✅ Container dedicado para testes (`postgres-test`)  
-✅ Dados de produção nunca são afetados  
+```bash
+# Certifique-se de ter PostgreSQL rodando
+# Execute as migrations (se necessário)
+# Inicie o servidor
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-### Cobertura de Testes
+### 7. Acessar a Aplicação
 
-- **51 testes de integração** cobrindo todos os módulos
-- **60%+ de cobertura** de código
-- Testes rodando automaticamente no GitHub Actions
+- **API**: http://localhost:8000
+- **Swagger UI**: http://localhost:8000/api/v1/docs
+- **ReDoc**: http://localhost:8000/api/v1/redoc
+- **Health Check**: http://localhost:8000/health
 
-## 🔄 Desenvolvimento
+---
 
-### Estrutura de desenvolvimento:
-1. **Models** (`app/models/`) - Definições das tabelas
-2. **Schemas** (`app/schemas/`) - Validação de dados
-3. **Services** (`app/services/`) - Lógica de negócio
-4. **Endpoints** (`app/api/v1/endpoints/`) - Rotas da API
+## 🧪 Executar Testes
 
+```bash
+# Instalar dependências de desenvolvimento
+pip install -r requirements-dev.txt
 
-## 🤝 Integração com Frontend
+# Executar todos os testes
+pytest
 
-O backend está preparado para funcionar com qualquer frontend que consuma APIs REST. As principais características:
+# Executar com coverage
+pytest --cov=app --cov-report=html
 
-- **CORS configurado** para desenvolvimento e produção
-- **Documentação automática** com Swagger
-- **Versionamento da API** (`/api/v1/`)
-- **Padrões RESTful** consistentes
-- **Validação de dados** com Pydantic
-- **Tratamento de erros** padronizado
+# Ver relatório de coverage
+start htmlcov/index.html  # Windows
+open htmlcov/index.html   # Mac
+xdg-open htmlcov/index.html  # Linux
+```
+
+---
+
+## 🔧 Comandos Úteis
+
+### Usando Make (Windows/Linux/Mac)
+
+```bash
+# Instalar dependências
+make install
+
+# Executar testes
+make test
+
+# Executar linting
+make lint
+
+# Formatar código
+make format
+
+# Executar servidor
+make run
+
+# Limpar cache
+make clean
+```
+
+### Manualmente
+
+```bash
+# Formatar código
+black app tests
+isort app tests
+
+# Verificar estilo
+flake8 app tests
+
+# Type checking
+mypy app
+```
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
+Backend/
+├── app/
+│   ├── api/v1/          # Rotas da API
+│   ├── core/            # Configurações e utilitários
+│   ├── db/              # Banco de dados e modelos
+│   └── src/             # Módulos de domínio
+│       ├── properties/  # Propriedades
+│       ├── tenants/     # Inquilinos
+│       ├── contracts/   # Contratos
+│       ├── payments/    # Pagamentos
+│       ├── expenses/    # Despesas
+│       └── notifications/ # Notificações
+├── tests/               # Testes automatizados
+├── docker-compose.yml   # Configuração Docker
+├── requirements.txt     # Dependências
+└── README.md           # Este arquivo
+```
+
+---
+
+## 🔐 Autenticação
+
+O backend usa JWT tokens gerado pelo **Auth-API** separado.
+
+### Como Autenticar:
+
+1. **Fazer login no Auth-API:**
+```bash
+POST https://auth-api-3zxk.onrender.com/api/v1/auth/login
+{
+  "username": "seu_usuario",
+  "password": "sua_senha"
+}
+```
+
+2. **Usar o token nas requisições:**
+```bash
+Authorization: Bearer <seu_token>
+```
+
+3. **Testar no Swagger:**
+- Acesse http://localhost:8000/api/v1/docs
+- Clique em **Authorize**
+- Cole o token
+- Teste os endpoints protegidos
+
+---
+
+## 🌍 CORS
+
+O backend está configurado para aceitar requisições de:
+
+- `http://localhost:3000` (Next.js dev)
+- `http://localhost:3001` (React dev)
+- `http://localhost:5173` (Vite dev)
+- `https://imobly.onrender.com` (Frontend em produção)
+- `https://auth-api-3zxk.onrender.com` (Auth-API)
+
+Para adicionar novas origens, edite `app/core/config.py`:
+
+```python
+BACKEND_CORS_ORIGINS: List[str] = [
+    "http://localhost:3000",
+    # Adicione aqui...
+]
+```
+
+---
+
+## 📚 Documentação Completa
+
+Para documentação detalhada sobre:
+- Arquitetura do sistema
+- Guias de API
+- Exemplos de uso
+- Diagramas
+- Deploy e CI/CD
+
+**Acesse:** https://imobly.github.io/Documentation/
+
+---
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -m 'feat: adicionar nova feature'`)
+4. Push para a branch (`git push origin feature/nova-feature`)
+5. Abra um Pull Request
+
+**Importante:** Todos os PRs devem passar nos testes e linters do CI/CD.
+
+---
+
+## 📄 Licença
+
+Este projeto é privado e pertence à Imobly.
+
+---
+
+## 📞 Suporte
+
+- **Issues**: https://github.com/Imobly/Backend/issues
+- **Documentação**: https://imobly.github.io/Documentation/
+
+---
+
+**Desenvolvido com ❤️ pela equipe Imobly**
