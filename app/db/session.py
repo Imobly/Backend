@@ -11,6 +11,7 @@ engine = create_engine(
     max_overflow=settings.DB_MAX_OVERFLOW,
     pool_timeout=settings.DB_POOL_TIMEOUT,
     pool_recycle=settings.DB_POOL_RECYCLE,
+    pool_pre_ping=True,  # Testa conexão antes de usar (evita conexões mortas)
     echo=settings.DEBUG,
 )
 

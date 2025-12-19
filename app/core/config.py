@@ -16,10 +16,23 @@ class Settings(BaseSettings):
     )
 
     # Database Pool Settings
-    DB_POOL_SIZE: int = 10
-    DB_MAX_OVERFLOW: int = 20
-    DB_POOL_TIMEOUT: int = 30
-    DB_POOL_RECYCLE: int = 3600
+    # Configurações otimizadas para diferentes modos de conexão do PostgreSQL
+    #
+    # SUPABASE (Produção):
+    #   - Transaction Mode (porta 6543): Recomendado! Suporta ~10.000 conexões
+    #   - Session Mode (porta 5432): Limite baixo ~30 conexões
+    #
+    # LOCAL (Desenvolvimento):
+    #   - Porta 5432: PostgreSQL local sem limites rigorosos
+    #
+    # Para alterar o modo no Supabase, mude a porta na DATABASE_URL:
+    #   Session:     postgresql://...supabase.com:5432/postgres
+    #   Transaction: postgresql://...supabase.com:6543/postgres
+    #
+    DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", "5"))
+    DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", "10"))
+    DB_POOL_TIMEOUT: int = int(os.getenv("DB_POOL_TIMEOUT", "30"))
+    DB_POOL_RECYCLE: int = int(os.getenv("DB_POOL_RECYCLE", "1800"))  # 30min
 
     # Security Settings
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
