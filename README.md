@@ -158,20 +158,26 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ## 🗄️ Configuração do Banco de Dados
 
-### Desenvolvimento Local (Docker)
+### Ambientes e seletor `ENVIRONMENT`
 
-O `docker-compose.yml` já configura automaticamente um PostgreSQL local:
+O projeto usa um único `.env` com seletor de ambiente (`ENVIRONMENT`) e três DSNs:
 
 ```env
-DATABASE_URL=postgresql://postgres:admin123@postgres:5432/imovel_gestao
+# Seleção de ambiente
+ENVIRONMENT=staging  # development|staging|production
+
+# DSNs por ambiente (Supabase recomendado usando PgBouncer porta 6543)
+DATABASE_URL_DEV=postgresql://user:pass@host:6543/db?sslmode=require
+DATABASE_URL_HML=postgresql://user:pass@host:6543/db?sslmode=require
+DATABASE_URL_PROD=postgresql://user:pass@host:6543/db?sslmode=require
+
+# CORS (separado por vírgula)
+BACKEND_CORS_ORIGINS=http://localhost:3000,https://demo.imobly.com
 ```
 
-**Credenciais para pgAdmin/DBeaver:**
-- Host: `localhost`
-- Port: `5432`
-- Database: `imovel_gestao`
-- Username: `postgres`
-- Password: `admin123`
+No desenvolvimento, os `docker-compose` já sobrepõem `ENVIRONMENT=staging` e usam `DATABASE_URL_HML`.
+
+Documento completo: https://imobly.github.io/Documentation/guides/environments/
 
 ### Produção (Supabase)
 
@@ -194,7 +200,8 @@ O Supabase oferece dois modos de conexão:
 
 ```env
 # .env (Produção)
-DATABASE_URL=postgresql://postgres.yyeldattafklyutbbnhu:[SUA_SENHA]@aws-0-us-west-2.pooler.supabase.com:6543/postgres
+ENVIRONMENT=production
+DATABASE_URL_PROD=postgresql://postgres.yyeldattafklyutbbnhu:[SUA_SENHA]@aws-0-us-west-2.pooler.supabase.com:6543/postgres
 ```
 
 **Por que usar Transaction Mode?**

@@ -4,14 +4,11 @@
 # =============================================================================
 
 services:
-  # ---------------------------------------------------------------------------
-  # Backend API - Aplicação FastAPI
-  # ---------------------------------------------------------------------------
   backend:
     build:
       context: .
       dockerfile: Dockerfile
-      target: development  # Usa stage 'development' do Dockerfile
+      target: development 
     container_name: imobly_backend
     restart: unless-stopped
     ports:
@@ -24,7 +21,8 @@ services:
       - 1.1.1.1
     environment:
       # Ambiente
-      - ENVIRONMENT=development
+      - ENVIRONMENT=staging
+      - DATABASE_URL=${DATABASE_URL_HML}
       - DEBUG=true
       
       # API
@@ -38,14 +36,12 @@ services:
       - UPLOAD_DIR=/app/uploads
     
     volumes:
-      - ./app:/app/app:rw  # Bind apenas o código (evita problemas OneDrive)
+      - ./app:/app/app:rw 
       - ./tests:/app/tests:rw
-      - uploads_data:/app/uploads  # Volume nomeado (evita symlink issues)
-      - logs_data:/app/logs  # Volume nomeado
+      - uploads_data:/app/uploads  
+      - logs_data:/app/logs  
     
-    depends_on:
-      postgres:
-        condition: service_healthy
+    # Banco local é opcional; quando usar, inicialize com perfil 'local-db'
     
     networks:
       - app-network
@@ -57,11 +53,9 @@ services:
       retries: 3
       start_period: 40s
 
-  # ---------------------------------------------------------------------------
-  # PostgreSQL - Banco de Dados de Desenvolvimento
-  # ---------------------------------------------------------------------------
   postgres:
     image: postgres:15-alpine
+    profiles: ["local-db"]
     container_name: imobly_postgres
     restart: unless-stopped
     environment:
@@ -81,9 +75,6 @@ services:
     networks:
       - app-network
 
-  # ---------------------------------------------------------------------------
-  # PostgreSQL Test - Banco de Dados para Testes
-  # ---------------------------------------------------------------------------
   postgres-test:
     image: postgres:15-alpine
     container_name: imobly_postgres_test
@@ -105,16 +96,13 @@ services:
     networks:
       - app-network
 
-  # ---------------------------------------------------------------------------
-  # Test Runner - Executar testes com linting
-  # ---------------------------------------------------------------------------
   test-runner:
     build:
       context: .
       dockerfile: Dockerfile
-      target: testing  # Usa stage 'testing' do Dockerfile
+      target: testing 
     container_name: imobly_test_runner
-    profiles: ["test"]  # Só executa com: docker compose --profile test up
+    profiles: ["test"]  
     depends_on:
       postgres-test:
         condition: service_healthy
@@ -149,9 +137,6 @@ volumes:
     driver: local
     name: imobly_logs
 
-# =============================================================================
-# Redes
-# =============================================================================
 networks:
   app-network:
     driver: bridge

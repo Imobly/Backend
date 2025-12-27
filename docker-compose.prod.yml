@@ -14,8 +14,9 @@ services:
     ports:
       - "8000:8000"
     environment:
+      ENVIRONMENT: production
+      DATABASE_URL: ${DATABASE_URL_PROD}
       # Supabase Production Database
-      DATABASE_URL: ${DATABASE_URL}
       DB_SCHEMA: ${DB_SCHEMA:-public}
       
       # Security - DEVE SER IGUAL AO AUTH-API

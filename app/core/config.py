@@ -9,10 +9,26 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Imóvel Gestão API"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
+    # Environment selector
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development").lower()
 
     # Database Settings
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", "postgresql://postgres:admin123@postgres:5432/imovel_gestao"
+    # Unified env: prefer DATABASE_URL; else select by ENVIRONMENT
+    DATABASE_URL_DEV: str = os.getenv(
+        "DATABASE_URL_DEV", "postgresql://postgres:admin123@postgres:5432/imovel_gestao"
+    )
+    DATABASE_URL_HML: str | None = os.getenv("DATABASE_URL_HML")
+    DATABASE_URL_PROD: str | None = os.getenv("DATABASE_URL_PROD")
+
+    # Final DATABASE_URL resolution
+    DATABASE_URL: str = os.getenv("DATABASE_URL") or (
+        DATABASE_URL_DEV
+        if ENVIRONMENT in {"dev", "development"}
+        else (
+            DATABASE_URL_HML
+            if ENVIRONMENT in {"hml", "staging"}
+            else (DATABASE_URL_PROD or DATABASE_URL_DEV)
+        )
     )
 
     # Database Pool Settings
@@ -44,19 +60,15 @@ class Settings(BaseSettings):
     PORT: int = 8000
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
 
-    # CORS Settings - URLs permitidas para acessar a API
-    BACKEND_CORS_ORIGINS: List[str] = [
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:5173",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
-        "http://127.0.0.1:5173",
-        # Produção
-        "https://imobly.onrender.com",  # Frontend
-        "https://auth-api-3zxk.onrender.com",  # Auth-API
-        "https://backend-non0.onrender.com",  # Backend (self)
-    ]
+    # CORS Settings - string env with comma-separated origins
+    BACKEND_CORS_ORIGINS: str = os.getenv(
+        "BACKEND_CORS_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000",
+    )
+
+    @property
+    def cors_origins_list(self) -> List[str]:
+        return [o.strip() for o in self.BACKEND_CORS_ORIGINS.split(",") if o.strip()]
 
     # File Upload Settings
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
