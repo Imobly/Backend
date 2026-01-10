@@ -102,10 +102,38 @@ class tenant_controller:
         if not tenant_obj:
             raise HTTPException(status_code=404, detail="Inquilino não encontrado")
 
-        success = self.repository.delete(db, id=tenant_id)
-        if not success:
-            raise HTTPException(status_code=404, detail="Inquilino não encontrado")
-        return {"message": "Inquilino deletado com sucesso"}
+        # Verificar se há contratos ativos vinculados ao inquilino
+        from app.src.contracts.models import Contract
+        active_contracts = db.query(Contract).filter(
+            Contract.tenant_id == tenant_id,
+            Contract.status.in_(["active", "pending"])
+        ).count()
+        
+        if active_contracts > 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Não é possível deletar o inquilino. Existem {active_contracts} contrato(s) ativo(s) vinculado(s). Encerre os contratos antes de deletar o inquilino."
+            )
+
+        # Deletar documentos associados
+        if tenant_obj.documents:
+            from app.core.upload_service import upload_service
+            upload_service.delete_multiple_files(tenant_obj.documents)
+
+        # Deletar o inquilino
+        try:
+            success = self.repository.delete(db, id=tenant_id)
+            if not success:
+                raise HTTPException(status_code=404, detail="Inquilino não encontrado")
+            return {"message": "Inquilino deletado com sucesso"}
+        except Exception as e:
+            error_msg = str(e)
+            if "foreign key constraint" in error_msg.lower() or "violates" in error_msg.lower():
+                raise HTTPException(
+                    status_code=400,
+                    detail="Não é possível deletar o inquilino. Existem registros vinculados (pagamentos, contratos, etc.). Remova-os antes de deletar o inquilino."
+                )
+            raise HTTPException(status_code=500, detail=f"Erro ao deletar inquilino: {error_msg}")
 
     def validate_tenant_exists(self, db: Session, tenant_id: int, user_id: int) -> bool:
         """Validar se inquilino existe (útil para outras operações)"""

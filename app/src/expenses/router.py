@@ -324,12 +324,12 @@ async def delete_expense_document(
     # Procurar e remover documento
     document_found = False
     updated_documents = []
+    file_to_delete = None
 
     for doc in expense.documents:
         if doc.get("url") == document_url:
             document_found = True
-            # Deletar arquivo físico
-            upload_service.delete_file(document_url)
+            file_to_delete = document_url
         else:
             updated_documents.append(doc)
 
@@ -338,7 +338,15 @@ async def delete_expense_document(
             status_code=status.HTTP_404_NOT_FOUND, detail="Documento não encontrado"
         )
 
-    # Atualizar array
+    # Deletar arquivo físico do Supabase
+    try:
+        if file_to_delete:
+            upload_service.delete_file(file_to_delete)
+    except Exception as e:
+        print(f"⚠️ Erro ao deletar arquivo do Supabase: {e}")
+        # Continua mesmo se falhar a deleção do arquivo
+
+    # Atualizar array no banco
     expense.documents = updated_documents
     db.commit()
     db.refresh(expense)

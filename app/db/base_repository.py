@@ -60,10 +60,15 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db.refresh(db_obj)
         return db_obj  # type: ignore[no-any-return]
 
-    def delete(self, db: Session, *, id: int) -> ModelType:  # type: ignore[return]
+    def delete(self, db: Session, *, id: int) -> bool:
+        """Delete a record by id.
+        
+        Returns:
+            bool: True if deleted successfully, False if not found
+        """
         obj = db.query(self.model).get(id)
         if obj is None:
-            raise ValueError(f"Object with id {id} not found")
+            return False
         db.delete(obj)
         db.commit()
-        return obj
+        return True

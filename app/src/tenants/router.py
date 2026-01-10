@@ -162,10 +162,10 @@ async def delete_tenant_document(
 
     # Atualizar tenant
     tenant_controller(db).update_tenant(
-        db,
+        db=db,
         tenant_id=tenant_id,
         user_id=user_id,
-        tenant_update=TenantUpdate(documents=updated_documents),
+        tenant_data=TenantUpdate(documents=updated_documents),
     )
 
     return {

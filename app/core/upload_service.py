@@ -1,7 +1,8 @@
 """
 Serviço centralizado para gerenciamento de uploads de arquivos
-Suporta imagens e documentos PDF
+Suporta armazenamento local e Supabase Storage
 """
+import os
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -13,7 +14,7 @@ from app.core.config import settings
 
 
 class UploadService:
-    """Serviço para gerenciar uploads de arquivos"""
+    """Serviço para gerenciar uploads de arquivos (Local ou Supabase)"""
 
     ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
     ALLOWED_DOCUMENT_EXTENSIONS = {".pdf", ".doc", ".docx"}
@@ -22,6 +23,22 @@ class UploadService:
     def __init__(self):
         self.base_upload_dir = Path(settings.UPLOAD_DIR)
         self.max_file_size = settings.MAX_FILE_SIZE
+        self.storage_mode = os.getenv("STORAGE_MODE", "local").lower()
+        
+        # Tentar inicializar Supabase Storage se configurado
+        self.supabase_service = None
+        if self.storage_mode == "supabase":
+            try:
+                from app.core.supabase_storage_service import supabase_storage_service
+                self.supabase_service = supabase_storage_service
+                if self.supabase_service:
+                    print("✅ Supabase Storage ativado")
+                else:
+                    print("⚠️  Supabase Storage não disponível, usando armazenamento local")
+                    self.storage_mode = "local"
+            except ImportError:
+                print("⚠️  Supabase não instalado, usando armazenamento local")
+                self.storage_mode = "local"
 
     def _validate_file_extension(
         self, filename: str, allowed_types: Literal["image", "document", "all"]
@@ -50,16 +67,30 @@ class UploadService:
         allowed_types: Literal["image", "document", "all"] = "all",
     ) -> dict:
         """
-        Salva um arquivo no diretório de uploads
+        Salva um arquivo no armazenamento (Local ou Supabase)
 
         Args:
             file: Arquivo a ser salvo
-            folder: Subpasta dentro de uploads (ex: 'properties', 'tenants')
+            folder: Subpasta dentro de uploads (ex: 'properties/123')
             allowed_types: Tipo de arquivo permitido ('image', 'document', 'all')
 
         Returns:
             dict com informações do arquivo salvo {filename, url, size, type}
         """
+        # Se Supabase estiver configurado, usar ele
+        if self.storage_mode == "supabase" and self.supabase_service:
+            return await self.supabase_service.save_file(file, folder, allowed_types)
+        
+        # Caso contrário, usar armazenamento local
+        return await self._save_file_local(file, folder, allowed_types)
+    
+    async def _save_file_local(
+        self,
+        file: UploadFile,
+        folder: str,
+        allowed_types: Literal["image", "document", "all"] = "all",
+    ) -> dict:
+        """Salva arquivo localmente (método antigo)"""
         # Validar nome do arquivo
         if not file.filename:
             raise HTTPException(
@@ -150,14 +181,19 @@ class UploadService:
 
     def delete_file(self, file_url: str) -> bool:
         """
-        Deleta um arquivo do sistema
+        Deleta um arquivo do armazenamento (Local ou Supabase)
 
         Args:
-            file_url: URL do arquivo (ex: /uploads/properties/20231116_abc123.jpg)
+            file_url: URL do arquivo
 
         Returns:
-            True se deletado com sucesso, False caso contrário
+            True se deletado com sucesso
         """
+        # Se Supabase estiver configurado, usar ele
+        if self.storage_mode == "supabase" and self.supabase_service:
+            return self.supabase_service.delete_file(file_url)
+        
+        # Caso contrário, deletar localmente
         try:
             # Remover '/uploads/' do início da URL
             relative_path = file_url.replace("/uploads/", "")
