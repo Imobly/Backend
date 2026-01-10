@@ -128,11 +128,17 @@ class ContractRepository(BaseRepository[Contract, ContractCreate, ContractUpdate
         end_date: date,
         exclude_contract_id: Optional[int] = None,
     ) -> bool:
-        """Verificar se propriedade está disponível no período"""
+        """Verificar se propriedade está disponível no período
+        
+        Uma propriedade está disponível se:
+        1. Não há contratos ativos que se sobrepõem ao período
+        2. OU o contrato ativo já expirou (end_date < hoje)
+        """
         query = db.query(Contract).filter(
             Contract.property_id == property_id,
             Contract.user_id == user_id,
             Contract.status == "active",
+            Contract.end_date >= date.today(),  # Apenas contratos que ainda não expiraram
             or_(
                 and_(Contract.start_date <= start_date, Contract.end_date >= start_date),
                 and_(Contract.start_date <= end_date, Contract.end_date >= end_date),
@@ -143,6 +149,26 @@ class ContractRepository(BaseRepository[Contract, ContractCreate, ContractUpdate
         if exclude_contract_id:
             query = query.filter(Contract.id != exclude_contract_id)
 
+        return query.first() is None
+
+    def get_by_title(self, db: Session, user_id: int, title: str) -> Optional[Contract]:
+        """Buscar contrato por título (filtrando por usuário)"""
+        return db.query(Contract).filter(
+            Contract.user_id == user_id,
+            Contract.title == title
+        ).first()
+
+    def check_unique_title(
+        self, db: Session, user_id: int, title: str, exclude_contract_id: Optional[int] = None
+    ) -> bool:
+        """Verificar se título do contrato é único (no escopo do usuário)"""
+        query = db.query(Contract).filter(
+            Contract.user_id == user_id,
+            Contract.title == title
+        )
+        if exclude_contract_id:
+            query = query.filter(Contract.id != exclude_contract_id)
+        
         return query.first() is None
 
     def update_status(

@@ -52,24 +52,56 @@ class contract_controller:
         self, db: Session, user_id: int, contract_data: ContractCreate
     ) -> ContractResponse:
         """Criar novo contrato"""
-        # Verificar se propriedade está disponível no período
-        if not self.repository.check_property_availability(
-            db, contract_data.property_id, user_id, contract_data.start_date, contract_data.end_date
-        ):
-            raise HTTPException(
-                status_code=400, detail="Propriedade não disponível no período especificado"
-            )
+        try:
+            # Verificar se o título é único
+            if not self.repository.check_unique_title(db, user_id, contract_data.title):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Já existe um contrato com este título"
+                )
+            
+            # Verificar se propriedade está disponível no período
+            if not self.repository.check_property_availability(
+                db, contract_data.property_id, user_id, contract_data.start_date, contract_data.end_date
+            ):
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Propriedade não disponível no período especificado. Já existe um contrato ativo que se sobrepõe a estas datas."
+                )
 
-        # Adiciona user_id ao objeto Pydantic
-        contract_dict = contract_data.model_dump()
-        contract_dict["user_id"] = user_id
+            # Adiciona user_id ao objeto Pydantic
+            contract_dict = contract_data.model_dump()
+            contract_dict["user_id"] = user_id
 
-        # Cria um novo objeto Pydantic com user_id incluído
-        from app.src.contracts.schemas import ContractCreateInternal
+            # Cria um novo objeto Pydantic com user_id incluído
+            from app.src.contracts.schemas import ContractCreateInternal
 
-        contract_with_user = ContractCreateInternal(**contract_dict)
+            contract_with_user = ContractCreateInternal(**contract_dict)
 
-        return self.repository.create(db, obj_in=contract_with_user)
+            # Criar contrato
+            new_contract = self.repository.create(db, obj_in=contract_with_user)
+            
+            # Se o contrato está ativo, atualizar status do imóvel para 'occupied'
+            if contract_data.status == "active":
+                from app.src.properties.models import Property
+                property_obj = db.query(Property).filter(
+                    Property.id == contract_data.property_id,
+                    Property.user_id == user_id
+                ).first()
+                if property_obj:
+                    property_obj.status = "occupied"
+                    property_obj.tenant_id = contract_data.tenant_id
+                    db.add(property_obj)
+                    db.commit()
+            
+            return new_contract
+        except HTTPException:
+            raise
+        except Exception as e:
+            print(f"❌ Erro ao criar contrato: {type(e).__name__}: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(status_code=500, detail=f"Erro ao criar contrato: {str(e)}")
 
     def update_contract(
         self, db: Session, contract_id: int, user_id: int, contract_data: ContractUpdate
@@ -79,7 +111,51 @@ class contract_controller:
         if not contract_obj:
             raise HTTPException(status_code=404, detail="Contrato não encontrado")
 
-        return self.repository.update(db, db_obj=contract_obj, obj_in=contract_data)
+        # Se estiver atualizando o título, verificar se é único
+        if contract_data.title and contract_data.title != contract_obj.title:
+            if not self.repository.check_unique_title(db, user_id, contract_data.title, exclude_contract_id=contract_id):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Já existe um contrato com este título"
+                )
+
+        # Se estiver atualizando as datas, verificar disponibilidade
+        if contract_data.start_date or contract_data.end_date:
+            start = contract_data.start_date or contract_obj.start_date
+            end = contract_data.end_date or contract_obj.end_date
+
+            if not self.repository.check_property_availability(
+                db, contract_obj.property_id, user_id, start, end, exclude_contract_id=contract_id
+            ):
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Propriedade não disponível no período especificado. Já existe um contrato ativo que se sobrepõe a estas datas."
+                )
+
+        # Guardar status anterior
+        old_status = contract_obj.status
+        
+        # Atualizar contrato
+        updated_contract = self.repository.update(db, db_obj=contract_obj, obj_in=contract_data)
+        
+        # Atualizar status do imóvel se o status do contrato mudou
+        if contract_data.status and contract_data.status != old_status:
+            from app.src.properties.models import Property
+            property_obj = db.query(Property).filter(
+                Property.id == contract_obj.property_id,
+                Property.user_id == user_id
+            ).first()
+            if property_obj:
+                if contract_data.status == "active":
+                    property_obj.status = "occupied"
+                    property_obj.tenant_id = contract_obj.tenant_id
+                elif contract_data.status in ["expired", "terminated"]:
+                    property_obj.status = "vacant"
+                    property_obj.tenant_id = None
+                db.add(property_obj)
+                db.commit()
+        
+        return updated_contract
 
     def delete_contract(self, db: Session, contract_id: int, user_id: int) -> dict:
         """Deletar contrato"""

@@ -62,7 +62,9 @@ class tenant_controller:
         # Verificar se email e CPF são únicos
         validation_errors = self.repository.check_unique_constraints(db, user_id, tenant_data)
         if validation_errors:
-            raise HTTPException(status_code=400, detail=validation_errors)
+            # Formatar mensagem de erro mais amigável
+            error_messages = ", ".join([f"{k}: {v}" for k, v in validation_errors.items()])
+            raise HTTPException(status_code=400, detail=f"Dados duplicados: {error_messages}")
 
         # Adiciona user_id ao objeto Pydantic
         tenant_dict = tenant_data.model_dump()
